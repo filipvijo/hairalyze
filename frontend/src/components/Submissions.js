@@ -11,11 +11,15 @@ const Submissions = () => {
   useEffect(() => {
     // Check for latest analysis in localStorage first
     const storedAnalysis = localStorage.getItem('latestAnalysis');
+    let parsedAnalysis = null;
+
     if (storedAnalysis) {
       try {
-        const parsedAnalysis = JSON.parse(storedAnalysis);
+        parsedAnalysis = JSON.parse(storedAnalysis);
         setLatestAnalysis(parsedAnalysis);
         console.log('Found analysis in localStorage:', parsedAnalysis);
+        // If we have data in localStorage, set loading to false immediately
+        setLoading(false);
       } catch (e) {
         console.error('Error parsing stored analysis:', e);
       }
@@ -31,7 +35,8 @@ const Submissions = () => {
       } catch (err) {
         console.error('Error fetching submissions:', err);
         // If we have latestAnalysis from localStorage, don't show error
-        if (latestAnalysis) {
+        if (parsedAnalysis) {
+          // Just set loading to false, don't show error
           setLoading(false);
         } else {
           setError('Failed to load submissions. Please try again later.');
@@ -50,6 +55,7 @@ const Submissions = () => {
     );
   }
 
+  // Only show error if we have an error AND we don't have any data in localStorage
   if (error && !latestAnalysis) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-secondary">
@@ -57,6 +63,13 @@ const Submissions = () => {
       </div>
     );
   }
+
+  console.log('Rendering Submissions component with:', {
+    latestAnalysis: latestAnalysis ? 'Present' : 'Not present',
+    submissions: submissions.length,
+    error: error ? 'Present' : 'Not present',
+    loading
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-secondary to-light py-10">
