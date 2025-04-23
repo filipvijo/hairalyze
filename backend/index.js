@@ -589,7 +589,7 @@ app.post(
         });
 
         console.log("Attempting to save submission to MongoDB...");
-        const savedSubmission = await submission.save({ timeout: 60000 }); // Increase timeout to 60 seconds
+        const savedSubmission = await submission.save();   // use global timeouts
         console.log("Submission saved successfully:", savedSubmission._id);
 
         // Return success response even if there are minor issues
@@ -695,10 +695,10 @@ const connectToMongo = async () => {
       return true;
     }
 
-    // Close any existing connection
-    if (mongoose.connection.readyState !== 0) {
-      await mongoose.connection.close();
-    }
+    // Close any existing connection - COMMENTED OUT
+    // if (mongoose.connection.readyState !== 0) {
+    //   await mongoose.connection.close();
+    // }
 
     // Connect with more robust options
     await mongoose.connect(process.env.MONGO_URI, {
@@ -723,6 +723,17 @@ const connectToMongo = async () => {
     return false;
   }
 };
+
+// ------------------ NEW: connect once at startup ------------------
+(async () => {
+  const ok = await connectToMongo();
+  if (!ok) {
+    console.error('❌  Could not connect to MongoDB on boot – exiting');
+    process.exit(1);
+  }
+  console.log('✅  MongoDB ready – starting HTTP server...');
+})();
+// -----------------------------------------------------------------
 
 // Middleware to connect to MongoDB before processing API requests
 app.use(async (req, res, next) => {
