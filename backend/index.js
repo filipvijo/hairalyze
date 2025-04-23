@@ -573,34 +573,69 @@ app.get('/api/submissions', async (_req, res) => {
   }
 });
 
-// Add a health check endpoint
+// Add a health check endpoint that doesn't require MongoDB
 app.get('/', (req, res) => {
   res.status(200).json({ status: 'API is running', message: 'Welcome to Hairalyze API' });
 });
 
-// MongoDB connection and Server Start
-const startServer = async () => {
-    try {
-        await mongoose.connect(process.env.MONGO_URI);
-        console.log('MongoDB connected successfully');
+// Add a debug endpoint to check environment variables (without exposing secrets)
+app.get('/debug', (req, res) => {
+  res.status(200).json({
+    nodeEnv: process.env.NODE_ENV || 'not set',
+    mongoConnected: !!mongoose.connection.readyState,
+    awsConfigured: !!(process.env.AWS_REGION && process.env.AWS_S3_BUCKET),
+    frontendUrl: process.env.FRONTEND_URL || 'not set',
+    timestamp: new Date().toISOString()
+  });
+});
 
-        // Only start the server if not running on Vercel
-        if (process.env.NODE_ENV !== 'production') {
-            const PORT = process.env.PORT || 5000;
-            app.listen(PORT, () => {
-                console.log(`Server running on port ${PORT}`);
-            });
-        }
-    } catch (err) {
-        console.error('MongoDB connection failed:', err.message);
-        if (process.env.NODE_ENV !== 'production') {
-            process.exit(1); // Exit if DB connection fails in development
-        }
-    }
+// MongoDB connection and Server Start
+let isConnectedToMongo = false;
+
+const connectToMongo = async () => {
+  if (isConnectedToMongo) return;
+
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+      socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+    });
+    console.log('MongoDB connected successfully');
+    isConnectedToMongo = true;
+    return true;
+  } catch (err) {
+    console.error('MongoDB connection failed:', err.message);
+    isConnectedToMongo = false;
+    return false;
+  }
 };
 
-// Connect to MongoDB when the app starts
-startServer();
+// Middleware to connect to MongoDB before processing API requests
+app.use(async (req, res, next) => {
+  // Skip MongoDB connection for health check and debug endpoints
+  if (req.path === '/' || req.path === '/debug') {
+    return next();
+  }
+
+  try {
+    const connected = await connectToMongo();
+    if (!connected) {
+      return res.status(500).json({ error: 'Database connection failed. Please try again later.' });
+    }
+    next();
+  } catch (error) {
+    console.error('Error in MongoDB connection middleware:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Start the server in development mode
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
 
 // Export the Express app for Vercel
 module.exports = app;
