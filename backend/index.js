@@ -583,22 +583,60 @@ app.get('/debug', (req, res) => {
   res.status(200).json({
     nodeEnv: process.env.NODE_ENV || 'not set',
     mongoConnected: !!mongoose.connection.readyState,
+    mongoUri: process.env.MONGO_URI ? `${process.env.MONGO_URI.substring(0, 20)}...` : 'not set',
     awsConfigured: !!(process.env.AWS_REGION && process.env.AWS_S3_BUCKET),
     frontendUrl: process.env.FRONTEND_URL || 'not set',
+    port: process.env.PORT || '10000',
     timestamp: new Date().toISOString()
   });
+});
+
+// Add a test endpoint for MongoDB connection
+app.get('/test-mongo', async (req, res) => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
+    res.status(200).json({ success: true, message: 'MongoDB connection successful' });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'MongoDB connection failed',
+      error: error.message,
+      mongoUri: process.env.MONGO_URI ? `${process.env.MONGO_URI.substring(0, 20)}...` : 'not set'
+    });
+  }
 });
 
 // MongoDB connection and Server Start
 let isConnectedToMongo = false;
 
 const connectToMongo = async () => {
-  if (isConnectedToMongo) return;
+  if (isConnectedToMongo) return true;
 
   try {
+    // Check if we already have an active connection
+    if (mongoose.connection.readyState === 1) {
+      console.log('MongoDB already connected');
+      isConnectedToMongo = true;
+      return true;
+    }
+
+    // Close any existing connection
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.connection.close();
+    }
+
+    // Connect with more robust options
     await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+      serverSelectionTimeoutMS: 10000, // Increased timeout to 10s
       socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+      family: 4, // Use IPv4, skip trying IPv6
+      retryWrites: true,
+      retryReads: true,
+      maxPoolSize: 10,
+      minPoolSize: 5
     });
     console.log('MongoDB connected successfully');
     isConnectedToMongo = true;
@@ -612,20 +650,26 @@ const connectToMongo = async () => {
 
 // Middleware to connect to MongoDB before processing API requests
 app.use(async (req, res, next) => {
-  // Skip MongoDB connection for health check and debug endpoints
-  if (req.path === '/' || req.path === '/debug') {
+  // Skip MongoDB connection for health check, debug, and test endpoints
+  if (req.path === '/' || req.path === '/debug' || req.path === '/test-mongo') {
     return next();
   }
 
   try {
     const connected = await connectToMongo();
     if (!connected) {
-      return res.status(500).json({ error: 'Database connection failed. Please try again later.' });
+      return res.status(503).json({
+        error: 'Database connection failed. Please try again later.',
+        message: 'The server is temporarily unable to connect to the database. This is likely due to network issues or database maintenance.'
+      });
     }
     next();
   } catch (error) {
     console.error('Error in MongoDB connection middleware:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({
+      error: 'Internal server error',
+      message: 'An unexpected error occurred while connecting to the database.'
+    });
   }
 });
 
