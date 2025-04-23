@@ -1,0 +1,25 @@
+{
+  "name": "hairalyze",
+  "version": "1.0.0",
+  "description": "Hairalyze - Hair Analysis Application",
+  "main": "index.js",
+  "scripts": {
+    "start": "cd backend && npm start",
+    "build": "cd backend && npm install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/filipvijo/hairalyze.git"
+  },
+  "keywords": [
+    "hair",
+    "analysis",
+    "ai"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/filipvijo/hairalyze/issues"
+  },
+  "homepage": "https://github.com/filipvijo/hairalyze#readme"
+}
