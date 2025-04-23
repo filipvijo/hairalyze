@@ -6,8 +6,22 @@ const Submissions = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showPreviousSubmissions, setShowPreviousSubmissions] = useState(false);
+  const [latestAnalysis, setLatestAnalysis] = useState(null);
 
   useEffect(() => {
+    // Check for latest analysis in localStorage first
+    const storedAnalysis = localStorage.getItem('latestAnalysis');
+    if (storedAnalysis) {
+      try {
+        const parsedAnalysis = JSON.parse(storedAnalysis);
+        setLatestAnalysis(parsedAnalysis);
+        console.log('Found analysis in localStorage:', parsedAnalysis);
+      } catch (e) {
+        console.error('Error parsing stored analysis:', e);
+      }
+    }
+
+    // Then fetch submissions from the API
     const fetchSubmissions = async () => {
       try {
         const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -15,8 +29,14 @@ const Submissions = () => {
         setSubmissions(response.data);
         setLoading(false);
       } catch (err) {
-        setError('Failed to load submissions. Please try again later.');
-        setLoading(false);
+        console.error('Error fetching submissions:', err);
+        // If we have latestAnalysis from localStorage, don't show error
+        if (latestAnalysis) {
+          setLoading(false);
+        } else {
+          setError('Failed to load submissions. Please try again later.');
+          setLoading(false);
+        }
       }
     };
     fetchSubmissions();
@@ -30,7 +50,7 @@ const Submissions = () => {
     );
   }
 
-  if (error) {
+  if (error && !latestAnalysis) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-secondary">
         <p className="text-red-500 text-xl">{error}</p>
@@ -64,17 +84,218 @@ const Submissions = () => {
           </div>
         )}
 
-        {submissions.length === 0 ? (
+        {submissions.length === 0 && !latestAnalysis ? (
           <p className="text-gray-700 text-center">No submissions found. Complete the questionnaire to see your results.</p>
         ) : (
-          submissions.map((submission, index) => {
-            // Only show the most recent submission if showPreviousSubmissions is false
-            if (index > 0 && !showPreviousSubmissions) return null;
-            // No need for chart data anymore
+          <>
+            {/* Show latest analysis from localStorage if available */}
+            {latestAnalysis && (
+              <div className="mb-16 relative">
+                <div className="absolute -top-8 left-0 right-0 text-center">
+                  <span className="inline-block px-4 py-1 bg-secondary text-neutral rounded-full text-sm font-medium">
+                    Latest Analysis from {new Date(latestAnalysis.timestamp).toLocaleDateString()}
+                    {latestAnalysis.warning && (
+                      <span className="ml-2 text-amber-600">⚠️ {latestAnalysis.warning}</span>
+                    )}
+                  </span>
+                </div>
 
-            return (
-              <div key={index} className="mb-16 relative">
-                {index > 0 && (
+                {/* Analysis Results Card */}
+                <div className="bg-gradient-to-br from-primary/5 to-accent/5 p-6 rounded-xl shadow-card mb-6 transform transition-all duration-300 hover:shadow-elevated hover:-translate-y-1 animate-fade-in delay-100 border border-primary/10">
+                  <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">Your Hair Profile</h2>
+
+                  {/* Hair Metrics */}
+                  <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {/* Moisture Metric */}
+                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="font-semibold text-neutral">Moisture</h3>
+                        <span className="text-lg font-bold text-accent">{latestAnalysis.metrics?.moisture || 0}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div
+                          className="bg-gradient-to-r from-accent to-primary h-2.5 rounded-full"
+                          style={{ width: `${latestAnalysis.metrics?.moisture || 0}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    {/* Strength Metric */}
+                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="font-semibold text-neutral">Strength</h3>
+                        <span className="text-lg font-bold text-primary">{latestAnalysis.metrics?.strength || 0}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div
+                          className="bg-gradient-to-r from-primary to-info h-2.5 rounded-full"
+                          style={{ width: `${latestAnalysis.metrics?.strength || 0}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    {/* Elasticity Metric */}
+                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="font-semibold text-neutral">Elasticity</h3>
+                        <span className="text-lg font-bold text-info">{latestAnalysis.metrics?.elasticity || 0}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div
+                          className="bg-gradient-to-r from-info to-primary h-2.5 rounded-full"
+                          style={{ width: `${latestAnalysis.metrics?.elasticity || 0}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    {/* Scalp Health Metric */}
+                    <div className="bg-white rounded-lg p-4 shadow-sm">
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="font-semibold text-neutral">Scalp Health</h3>
+                        <span className="text-lg font-bold text-success">{latestAnalysis.metrics?.scalpHealth || 0}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div
+                          className="bg-gradient-to-r from-success to-info h-2.5 rounded-full"
+                          style={{ width: `${latestAnalysis.metrics?.scalpHealth || 0}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-gray-700 bg-white p-5 rounded-lg shadow-sm">
+                    <h3 className="text-lg font-semibold mb-2 text-accent">What We See:</h3>
+                    <div className="mb-4 whitespace-pre-line">
+                      {latestAnalysis.hairAnalysis ? (
+                        <p className="text-gray-700 leading-relaxed">
+                          {latestAnalysis.hairAnalysis.replace(/\*\*(.*?)\*\*/g, '$1').replace(/- /g, '')}
+                        </p>
+                      ) : (
+                        'We\'re still analyzing your hair. Check back soon for your personalized hair profile!'
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Haircare Routine Card */}
+                <div className="bg-gradient-to-br from-success/5 to-info/5 p-6 rounded-xl shadow-card mb-6 transform transition-all duration-300 hover:shadow-elevated hover:-translate-y-1 animate-fade-in delay-200 border border-success/10">
+                  <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-success to-info bg-clip-text text-transparent">Your Perfect Hair Routine</h2>
+                  <p className="text-gray-600 mb-4">Based on your unique hair profile, we've crafted a personalized routine to help your hair look and feel its best.</p>
+                  <div className="text-gray-700">
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold mb-2 flex items-center">
+                        <span className="bg-primary text-white rounded-full w-7 h-7 flex items-center justify-center mr-2">1</span>
+                        Cleansing
+                      </h3>
+                      <div className="mb-2 whitespace-pre-line pl-9">
+                        {latestAnalysis.haircareRoutine?.cleansing ? (
+                          <p className="text-gray-700 leading-relaxed">
+                            {latestAnalysis.haircareRoutine.cleansing.replace(/\*\*(.*?)\*\*/g, '').replace(/- /g, '')}
+                          </p>
+                        ) : (
+                          'We\'re working on your personalized cleansing recommendations.'
+                        )}
+                      </div>
+                    </div>
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold mb-2 flex items-center">
+                        <span className="bg-primary text-white rounded-full w-7 h-7 flex items-center justify-center mr-2">2</span>
+                        Conditioning
+                      </h3>
+                      <div className="mb-2 whitespace-pre-line pl-9">
+                        {latestAnalysis.haircareRoutine?.conditioning ? (
+                          <p className="text-gray-700 leading-relaxed">
+                            {latestAnalysis.haircareRoutine.conditioning.replace(/\*\*(.*?)\*\*/g, '').replace(/- /g, '')}
+                          </p>
+                        ) : (
+                          'We\'re working on your personalized conditioning recommendations.'
+                        )}
+                      </div>
+                    </div>
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold mb-2 flex items-center">
+                        <span className="bg-primary text-white rounded-full w-7 h-7 flex items-center justify-center mr-2">3</span>
+                        Treatments
+                      </h3>
+                      <div className="mb-2 whitespace-pre-line pl-9">
+                        {latestAnalysis.haircareRoutine?.treatments ? (
+                          <p className="text-gray-700 leading-relaxed">
+                            {latestAnalysis.haircareRoutine.treatments.replace(/\*\*(.*?)\*\*/g, '').replace(/- /g, '')}
+                          </p>
+                        ) : (
+                          'We\'re working on your personalized treatment recommendations.'
+                        )}
+                      </div>
+                    </div>
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold mb-2 flex items-center">
+                        <span className="bg-primary text-white rounded-full w-7 h-7 flex items-center justify-center mr-2">4</span>
+                        Styling
+                      </h3>
+                      <div className="mb-2 whitespace-pre-line pl-9">
+                        {latestAnalysis.haircareRoutine?.styling ? (
+                          <p className="text-gray-700 leading-relaxed">
+                            {latestAnalysis.haircareRoutine.styling.replace(/\*\*(.*?)\*\*/g, '').replace(/- /g, '')}
+                          </p>
+                        ) : (
+                          'We\'re working on your personalized styling recommendations.'
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Product Suggestions Card */}
+                <div className="bg-gradient-to-br from-primary/5 to-success/5 p-6 rounded-xl shadow-card mb-6 transform transition-all duration-300 hover:shadow-elevated hover:-translate-y-1 animate-fade-in delay-300 border border-primary/10">
+                  <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-primary to-success bg-clip-text text-transparent">Products We Recommend</h2>
+                  <p className="text-gray-600 mb-4">These carefully selected products will help address your specific hair needs and concerns.</p>
+                  <div className="text-gray-700">
+                    {latestAnalysis.productSuggestions?.length > 0 ? (
+                      <ul className="space-y-3">
+                        {latestAnalysis.productSuggestions.map((product, idx) => (
+                          <li key={idx} className="flex items-start">
+                            <span className="text-primary mr-3 mt-1">✓</span>
+                            <span>{product}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>We're preparing your personalized product recommendations.</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* AI Bonus Tips Card */}
+                <div className="bg-gradient-to-br from-info/5 to-accent/5 p-6 rounded-xl shadow-card transform transition-all duration-300 hover:shadow-elevated hover:-translate-y-1 animate-fade-in delay-400 border border-info/10">
+                  <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-info to-accent bg-clip-text text-transparent">Expert Hair Tips</h2>
+                  <p className="text-gray-600 mb-4">These insider tips will help you maintain healthy, beautiful hair between salon visits.</p>
+                  <div className="text-gray-700">
+                    {latestAnalysis.aiBonusTips?.length > 0 ? (
+                      <div className="space-y-4">
+                        {latestAnalysis.aiBonusTips.map((tip, idx) => (
+                          <div key={idx} className="flex items-start">
+                            <div className="bg-secondary text-primary rounded-full w-6 h-6 flex items-center justify-center mr-3 mt-1 flex-shrink-0">{idx + 1}</div>
+                            <p>{tip.replace(/\*\*(.*?)\*\*/g, '')}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p>We're preparing your expert hair care tips.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Show submissions from the database */}
+            {submissions.map((submission, index) => {
+              // Only show the most recent submission if showPreviousSubmissions is false
+              if (index > 0 && !showPreviousSubmissions) return null;
+              // No need for chart data anymore
+
+              return (
+                <div key={index} className="mb-16 relative">
+                  {index > 0 && (
                   <div className="absolute -top-8 left-0 right-0 text-center">
                     <span className="inline-block px-4 py-1 bg-secondary text-neutral rounded-full text-sm font-medium">
                       Analysis from {new Date(submission.createdAt).toLocaleDateString()}
@@ -410,9 +631,10 @@ const Submissions = () => {
                     )}
                   </div>
                 </div>
-              </div>
-            );
-          })
+                </div>
+              );
+            })}
+          </>
         )}
       </div>
     </div>

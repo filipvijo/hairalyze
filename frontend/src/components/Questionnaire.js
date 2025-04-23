@@ -71,14 +71,58 @@ const Questionnaire = () => {
 
     try {
       const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-      await axios.post(`${apiUrl}/api/submit`, data);
+      console.log('Submitting to API URL:', apiUrl);
+
+      const response = await axios.post(`${apiUrl}/api/submit`, data);
+      console.log('Submission response:', response.data);
+
+      // Store the analysis results in localStorage for immediate access
+      if (response.data) {
+        localStorage.setItem('latestAnalysis', JSON.stringify({
+          timestamp: new Date().toISOString(),
+          hairAnalysis: response.data.hairAnalysis,
+          metrics: response.data.metrics,
+          haircareRoutine: response.data.haircareRoutine,
+          productSuggestions: response.data.productSuggestions,
+          aiBonusTips: response.data.aiBonusTips,
+          warning: response.data.warning || null
+        }));
+      }
+
       setTimeout(() => {
         setIsSubmitting(false);
         navigate('/submissions');
       }, 2000); // Simulate animation delay
     } catch (error) {
       console.error('Error submitting form:', error);
+
+      // Check if we got a response with data despite the error
+      if (error.response && error.response.data) {
+        console.log('Error response data:', error.response.data);
+
+        // If we have analysis data in the error response, store it and continue
+        if (error.response.data.hairAnalysis) {
+          localStorage.setItem('latestAnalysis', JSON.stringify({
+            timestamp: new Date().toISOString(),
+            hairAnalysis: error.response.data.hairAnalysis,
+            metrics: error.response.data.metrics,
+            haircareRoutine: error.response.data.haircareRoutine,
+            productSuggestions: error.response.data.productSuggestions,
+            aiBonusTips: error.response.data.aiBonusTips,
+            warning: 'Your analysis was completed but could not be saved to our database.'
+          }));
+
+          setTimeout(() => {
+            setIsSubmitting(false);
+            navigate('/submissions');
+          }, 2000);
+          return;
+        }
+      }
+
+      // If we couldn't recover any data, show an error
       setIsSubmitting(false);
+      alert('There was an error processing your submission. Please try again later.');
     }
   };
 
