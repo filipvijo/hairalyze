@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: hairalyze-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node index.js
+    nodeVersion: 18.x
+    envVars:
+      - key: NODE_ENV
+        value: production
