@@ -4,8 +4,10 @@ services:
     env: node
     rootDir: backend
     buildCommand: npm install
-    startCommand: node index.js
+    startCommand: node debug.js && node index.js
     nodeVersion: 18.x
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 10000

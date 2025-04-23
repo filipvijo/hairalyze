@@ -6,8 +6,8 @@ const multer = require('multer');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const axios = require('axios');
 const { body, validationResult } = require('express-validator');
-// Import the Submission model from the new file
-const Submission = require('./models/Submission');
+// Import the Submission model from the models.js file
+const { Submission } = require('./models');
 
 dotenv.config();
 const app = express();
@@ -629,13 +629,11 @@ app.use(async (req, res, next) => {
   }
 });
 
-// Start the server in development mode
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
+// Always start the server (required for Render.com)
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
 // Export the Express app for Vercel
 module.exports = app;
