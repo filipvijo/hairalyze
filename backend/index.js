@@ -9,14 +9,73 @@ const { body, validationResult } = require('express-validator');
 // Import the Submission model from the models.js file
 const { Submission } = require('./models');
 
+// Firebase Admin SDK for token verification
+const admin = require('firebase-admin');
+
 dotenv.config();
 const app = express();
+
+// Initialize Firebase Admin SDK
+try {
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      }),
+    });
+    console.log('Firebase Admin initialized successfully');
+  }
+} catch (error) {
+  console.error('Firebase Admin initialization failed:', error.message);
+  console.warn('SECURITY: Firebase initialization failed');
+}
+
+// Authentication middleware (simplified for local development)
+const authenticateUser = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'No valid authorization token provided' });
+    }
+
+    const token = authHeader.split('Bearer ')[1];
+
+    // For local development, we'll use a simplified approach
+    // In production, this should use Firebase Admin SDK verification
+    if (process.env.NODE_ENV === 'development') {
+      // Extract user ID from the token (this is a simplified approach for testing)
+      // In a real app, you'd verify the token with Firebase Admin
+      try {
+        // For now, we'll decode the token client-side info
+        // This is NOT secure for production but works for testing user separation
+        const userIdHeader = req.headers['x-user-id'];
+        if (!userIdHeader) {
+          return res.status(401).json({ error: 'User ID header required for development' });
+        }
+        req.user = { uid: userIdHeader };
+        next();
+      } catch (error) {
+        return res.status(401).json({ error: 'Invalid user ID' });
+      }
+    } else {
+      // Production: use Firebase Admin SDK
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      req.user = decodedToken;
+      next();
+    }
+  } catch (error) {
+    console.error('Authentication error:', error.message);
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+};
 
 // Middleware
 app.use(cors({
   origin: process.env.FRONTEND_URL || '*', // Allow requests from the frontend URL or all origins in development
   methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-User-ID'] // Add X-User-ID for development authentication
 }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -408,6 +467,7 @@ const analyzeImageWithGrok = async (imageUrls, isHairAnalysis = true, userData =
 // Route to handle form submission with validation
 app.post(
   '/api/submit',
+  authenticateUser, // Add authentication middleware
   upload.fields([
     { name: 'hairPhotos', maxCount: 3 },
     { name: 'productImages', maxCount: 5 },
@@ -574,6 +634,7 @@ app.post(
       console.log("Creating submission document...");
       try {
         const submission = new Submission({
+          userId: req.user.uid, // Add the authenticated user's ID
           hairProblem,
           allergies,
           medication,
@@ -633,11 +694,23 @@ app.post(
   }
 );
 
-// Route to fetch submissions
-app.get('/api/submissions', async (_req, res) => {
+// Route to fetch submissions (only for authenticated user)
+app.get('/api/submissions', authenticateUser, async (req, res) => {
   try {
-    // Fetch all submissions, sort by creation date descending
-    const submissions = await Submission.find().sort({ createdAt: -1 });
+    // For development: check if there are submissions without userId and assign them to current user
+    if (process.env.NODE_ENV === 'development') {
+      const submissionsWithoutUserId = await Submission.find({ userId: { $exists: false } });
+      if (submissionsWithoutUserId.length > 0) {
+        console.log(`Found ${submissionsWithoutUserId.length} submissions without userId, assigning to current user`);
+        await Submission.updateMany(
+          { userId: { $exists: false } },
+          { $set: { userId: req.user.uid } }
+        );
+      }
+    }
+
+    // Fetch only submissions for the authenticated user, sort by creation date descending
+    const submissions = await Submission.find({ userId: req.user.uid }).sort({ createdAt: -1 });
     res.status(200).json(submissions);
   } catch (error) {
     console.error('Error fetching submissions:', error.message);

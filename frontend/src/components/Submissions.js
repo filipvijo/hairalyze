@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 const Submissions = () => {
   const [submissions, setSubmissions] = useState([]);
@@ -7,6 +8,7 @@ const Submissions = () => {
   const [error, setError] = useState(null);
   const [showPreviousSubmissions, setShowPreviousSubmissions] = useState(false);
   const [latestAnalysis, setLatestAnalysis] = useState(null);
+  const { currentUser } = useAuth();
 
   useEffect(() => {
     // Check for latest analysis in localStorage first
@@ -28,8 +30,20 @@ const Submissions = () => {
     // Then fetch submissions from the API
     const fetchSubmissions = async () => {
       try {
+        if (!currentUser) {
+          setError('Please log in to view your submissions.');
+          setLoading(false);
+          return;
+        }
+
+        const token = await currentUser.getIdToken();
         const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-        const response = await axios.get(`${apiUrl}/api/submissions`);
+        const response = await axios.get(`${apiUrl}/api/submissions`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'X-User-ID': currentUser.uid // For development
+          }
+        });
         setSubmissions(response.data);
         setLoading(false);
       } catch (err) {
@@ -44,8 +58,13 @@ const Submissions = () => {
         }
       }
     };
-    fetchSubmissions();
-  }, []);
+
+    if (currentUser) {
+      fetchSubmissions();
+    } else {
+      setLoading(false);
+    }
+  }, [currentUser]);
 
   if (loading) {
     return (
@@ -101,8 +120,8 @@ const Submissions = () => {
           <p className="text-gray-700 text-center">No submissions found. Complete the questionnaire to see your results.</p>
         ) : (
           <>
-            {/* Show latest analysis from localStorage if available */}
-            {latestAnalysis && (
+            {/* Show latest analysis from localStorage only if no database submissions or if there's a warning */}
+            {latestAnalysis && (submissions.length === 0 || latestAnalysis.warning) && (
               <div className="mb-16 relative">
                 <div className="absolute -top-8 left-0 right-0 text-center">
                   <span className="inline-block px-4 py-1 bg-secondary text-neutral rounded-full text-sm font-medium">
@@ -279,7 +298,7 @@ const Submissions = () => {
                 </div>
 
                 {/* AI Bonus Tips Card */}
-                <div className="bg-gradient-to-br from-info/5 to-accent/5 p-6 rounded-xl shadow-card transform transition-all duration-300 hover:shadow-elevated hover:-translate-y-1 animate-fade-in delay-400 border border-info/10">
+                <div className="bg-gradient-to-br from-info/5 to-accent/5 p-6 rounded-xl shadow-card mb-6 transform transition-all duration-300 hover:shadow-elevated hover:-translate-y-1 animate-fade-in delay-400 border border-info/10">
                   <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-info to-accent bg-clip-text text-transparent">Expert Hair Tips</h2>
                   <p className="text-gray-600 mb-4">These insider tips will help you maintain healthy, beautiful hair between salon visits.</p>
                   <div className="text-gray-700">
@@ -294,6 +313,125 @@ const Submissions = () => {
                       </div>
                     ) : (
                       <p>We're preparing your expert hair care tips.</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Your Submission Card - from localStorage */}
+                {latestAnalysis.submissionData && (
+                  <div className="bg-gradient-to-br from-info/5 to-primary/5 p-6 rounded-xl shadow-card mb-6 transform transition-all duration-300 hover:shadow-elevated hover:-translate-y-1 animate-fade-in border border-info/10">
+                    <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-2xl font-bold bg-gradient-to-r from-info to-primary bg-clip-text text-transparent">Your Submission</h2>
+                      <span className="text-sm text-gray-500">{new Date(latestAnalysis.timestamp).toLocaleDateString()}</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-gray-700">
+                          <span className="font-semibold">Hair Concern:</span> {latestAnalysis.submissionData.hairProblem || 'N/A'}
+                        </p>
+                        <p className="text-gray-700">
+                          <span className="font-semibold">Allergies:</span> {latestAnalysis.submissionData.allergies || 'None'}
+                        </p>
+                        <p className="text-gray-700">
+                          <span className="font-semibold">Medications:</span> {latestAnalysis.submissionData.medication || 'None'}
+                        </p>
+                        <p className="text-gray-700">
+                          <span className="font-semibold">Hair Dyed:</span> {latestAnalysis.submissionData.dyed || 'N/A'}
+                        </p>
+                        <p className="text-gray-700">
+                          <span className="font-semibold">Wash Frequency:</span> {latestAnalysis.submissionData.washFrequency || 'N/A'}
+                        </p>
+                        {latestAnalysis.submissionData.additionalConcerns && (
+                          <p className="text-gray-700 mt-2 p-2 bg-primary/5 rounded-lg">
+                            <span className="font-semibold">Your Concerns:</span> {latestAnalysis.submissionData.additionalConcerns}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-gray-700">
+                          <span className="font-semibold">Products Used:</span>{' '}
+                          {latestAnalysis.submissionData.productNames?.length > 0 ? latestAnalysis.submissionData.productNames.join(', ') : 'None'}
+                        </p>
+                        {latestAnalysis.submissionData.hairPhotos?.length > 0 && (
+                          <div className="mt-4">
+                            <p className="text-gray-700 font-semibold">Hair Photos:</p>
+                            <div className="flex space-x-2 mt-2">
+                              {latestAnalysis.submissionData.hairPhotos.map((photo, idx) => (
+                                <img
+                                  key={idx}
+                                  src={photo}
+                                  alt={`Hair Photo ${idx + 1}`}
+                                  className="w-24 h-24 object-cover rounded-lg"
+                                  onError={(e) => {
+                                    console.error(`Failed to load photo: ${photo}`);
+                                    e.target.src = 'https://placehold.co/96x96?text=Photo+Not+Found';
+                                    e.target.onerror = null;
+                                  }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Styling Advice Card - from localStorage */}
+                <div className="bg-gradient-to-br from-accent/5 to-secondary/5 p-6 rounded-xl shadow-card transform transition-all duration-300 hover:shadow-elevated hover:-translate-y-1 animate-fade-in delay-500 border border-accent/10">
+                  <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-accent to-secondary bg-clip-text text-transparent">Styling Advice</h2>
+                  <p className="text-gray-600 mb-4">Based on your hair type and condition, here are some styling suggestions that would work beautifully for you.</p>
+                  <div className="text-gray-700">
+                    {latestAnalysis.stylingAdvice ? (
+                      <div className="space-y-4">
+                        <h3 className="font-semibold mb-2">Recommended Styles:</h3>
+                        <ul className="space-y-2 mb-4">
+                          {latestAnalysis.stylingAdvice.recommendedStyles?.map((style, idx) => (
+                            <li key={idx} className="flex items-start">
+                              <span className="text-primary mr-3 mt-1">•</span>
+                              <span>{style}</span>
+                            </li>
+                          )) || (
+                            <>
+                              <li className="flex items-start">
+                                <span className="text-primary mr-3 mt-1">•</span>
+                                <span>Layered cuts to enhance your natural texture</span>
+                              </li>
+                              <li className="flex items-start">
+                                <span className="text-primary mr-3 mt-1">•</span>
+                                <span>Soft waves or natural styling to showcase your hair's health</span>
+                              </li>
+                            </>
+                          )}
+                        </ul>
+
+                        <h3 className="font-semibold mb-2">Styling Tips:</h3>
+                        <ul className="space-y-2">
+                          {latestAnalysis.stylingAdvice.stylingTips?.map((tip, idx) => (
+                            <li key={idx} className="flex items-start">
+                              <span className="text-primary mr-3 mt-1">•</span>
+                              <span>{tip}</span>
+                            </li>
+                          )) || (
+                            <>
+                              <li className="flex items-start">
+                                <span className="text-primary mr-3 mt-1">•</span>
+                                <span>Always use heat protection before styling with hot tools</span>
+                              </li>
+                              <li className="flex items-start">
+                                <span className="text-primary mr-3 mt-1">•</span>
+                                <span>Consider air-drying your hair when possible to minimize damage</span>
+                              </li>
+                              <li className="flex items-start">
+                                <span className="text-primary mr-3 mt-1">•</span>
+                                <span>Apply styling products to damp hair for best results</span>
+                              </li>
+                            </>
+                          )}
+                        </ul>
+                      </div>
+                    ) : (
+                      <p>We're crafting your personalized styling advice based on your hair analysis.</p>
                     )}
                   </div>
                 </div>

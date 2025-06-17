@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import imageCompression from 'browser-image-compression';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 Modal.setAppElement('#root');
 
@@ -22,6 +23,7 @@ const Questionnaire = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -58,35 +60,62 @@ const Questionnaire = () => {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    const data = new FormData();
-    data.append('hairProblem', formData.hairProblem);
-    data.append('allergies', formData.allergies);
-    data.append('medication', formData.medication);
-    data.append('dyed', formData.dyed);
-    data.append('washFrequency', formData.washFrequency);
-    data.append('additionalConcerns', formData.additionalConcerns);
-    data.append('productNames', JSON.stringify(formData.productNames));
-    formData.hairPhotos.forEach((photo) => data.append('hairPhotos', photo));
-    formData.productImages.forEach((image) => data.append('productImages', image));
 
     try {
+      // Get the user's authentication token
+      const token = await currentUser.getIdToken();
+
+      const data = new FormData();
+      data.append('hairProblem', formData.hairProblem);
+      data.append('allergies', formData.allergies);
+      data.append('medication', formData.medication);
+      data.append('dyed', formData.dyed);
+      data.append('washFrequency', formData.washFrequency);
+      data.append('additionalConcerns', formData.additionalConcerns);
+      data.append('productNames', JSON.stringify(formData.productNames));
+      formData.hairPhotos.forEach((photo) => data.append('hairPhotos', photo));
+      formData.productImages.forEach((image) => data.append('productImages', image));
+
       const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
       console.log('Submitting to API URL:', apiUrl);
 
-      const response = await axios.post(`${apiUrl}/api/submit`, data);
+      const response = await axios.post(`${apiUrl}/api/submit`, data, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-User-ID': currentUser.uid // For development
+        }
+      });
       console.log('Submission response:', response.data);
 
       // Store the analysis results in localStorage for immediate access
       if (response.data) {
-        localStorage.setItem('latestAnalysis', JSON.stringify({
-          timestamp: new Date().toISOString(),
-          hairAnalysis: response.data.hairAnalysis,
-          metrics: response.data.metrics,
-          haircareRoutine: response.data.haircareRoutine,
-          productSuggestions: response.data.productSuggestions,
-          aiBonusTips: response.data.aiBonusTips,
-          warning: response.data.warning || null
-        }));
+        // If submission was successful (has submissionId), don't store in localStorage
+        // as it will be fetched from database
+        if (!response.data.submissionId) {
+          localStorage.setItem('latestAnalysis', JSON.stringify({
+            timestamp: new Date().toISOString(),
+            hairAnalysis: response.data.hairAnalysis,
+            metrics: response.data.metrics,
+            haircareRoutine: response.data.haircareRoutine,
+            productSuggestions: response.data.productSuggestions,
+            aiBonusTips: response.data.aiBonusTips,
+            stylingAdvice: response.data.stylingAdvice,
+            warning: response.data.warning || null,
+            submissionData: {
+              hairProblem: formData.hairProblem,
+              allergies: formData.allergies,
+              medication: formData.medication,
+              dyed: formData.dyed,
+              washFrequency: formData.washFrequency,
+              additionalConcerns: formData.additionalConcerns,
+              productNames: formData.productNames,
+              hairPhotos: formData.hairPhotos
+            }
+          }));
+        } else {
+          // Clear any existing localStorage data since we have a successful database save
+          localStorage.removeItem('latestAnalysis');
+        }
       }
 
       setTimeout(() => {
@@ -109,7 +138,18 @@ const Questionnaire = () => {
             haircareRoutine: error.response.data.haircareRoutine,
             productSuggestions: error.response.data.productSuggestions,
             aiBonusTips: error.response.data.aiBonusTips,
-            warning: 'Your analysis was completed but could not be saved to our database.'
+            stylingAdvice: error.response.data.stylingAdvice,
+            warning: 'Your analysis was completed but could not be saved to our database.',
+            submissionData: {
+              hairProblem: formData.hairProblem,
+              allergies: formData.allergies,
+              medication: formData.medication,
+              dyed: formData.dyed,
+              washFrequency: formData.washFrequency,
+              additionalConcerns: formData.additionalConcerns,
+              productNames: formData.productNames,
+              hairPhotos: formData.hairPhotos
+            }
           }));
 
           setTimeout(() => {

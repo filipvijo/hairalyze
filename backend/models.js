@@ -32,6 +32,7 @@ const analysisSchema = new mongoose.Schema({
 }, { _id: false });
 
 const submissionSchema = new mongoose.Schema({
+  userId: { type: String, required: true }, // Firebase user ID
   hairProblem: { type: String, required: false, default: '' }, // Made optional
   allergies: { type: String, default: '' },
   medication: { type: String, default: '' },
