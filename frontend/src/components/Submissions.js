@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import HairAnalystChat from './HairAnalystChat';
 
 const Submissions = () => {
   const [submissions, setSubmissions] = useState([]);
@@ -8,6 +9,8 @@ const Submissions = () => {
   const [error, setError] = useState(null);
   const [showPreviousSubmissions, setShowPreviousSubmissions] = useState(false);
   const [latestAnalysis, setLatestAnalysis] = useState(null);
+  const [showChat, setShowChat] = useState(false);
+  const [currentChatData, setCurrentChatData] = useState(null);
   const { currentUser } = useAuth();
 
   useEffect(() => {
@@ -65,6 +68,17 @@ const Submissions = () => {
       setLoading(false);
     }
   }, [currentUser]);
+
+  // Chat functions
+  const openChat = (analysisData, submissionData) => {
+    setCurrentChatData({ analysisData, submissionData });
+    setShowChat(true);
+  };
+
+  const closeChat = () => {
+    setShowChat(false);
+    setCurrentChatData(null);
+  };
 
   if (loading) {
     return (
@@ -435,6 +449,24 @@ const Submissions = () => {
                     )}
                   </div>
                 </div>
+
+                {/* AI Hair Analyst Chat Button */}
+                <div className="text-center mt-8 mb-6">
+                  <button
+                    onClick={() => openChat(latestAnalysis, latestAnalysis.submissionData)}
+                    className="group relative px-8 py-4 bg-gradient-to-r from-accent to-primary text-white font-bold text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 animate-pulse-slow"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <span className="text-2xl">💬</span>
+                      <span>Ask Your AI Hair Analyst</span>
+                      <span className="text-xl group-hover:animate-bounce">✨</span>
+                    </div>
+                    <div className="absolute -inset-1 bg-gradient-to-r from-accent to-primary rounded-full blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
+                  </button>
+                  <p className="text-sm text-gray-600 mt-3">
+                    Get personalized advice about products, styling, routines & more!
+                  </p>
+                </div>
               </div>
             )}
 
@@ -782,12 +814,39 @@ const Submissions = () => {
                     )}
                   </div>
                 </div>
+
+                {/* AI Hair Analyst Chat Button */}
+                <div className="text-center mt-8 mb-6">
+                  <button
+                    onClick={() => openChat(submission.analysis, submission)}
+                    className="group relative px-8 py-4 bg-gradient-to-r from-accent to-primary text-white font-bold text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 animate-pulse-slow"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <span className="text-2xl">💬</span>
+                      <span>Ask Your AI Hair Analyst</span>
+                      <span className="text-xl group-hover:animate-bounce">✨</span>
+                    </div>
+                    <div className="absolute -inset-1 bg-gradient-to-r from-accent to-primary rounded-full blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
+                  </button>
+                  <p className="text-sm text-gray-600 mt-3">
+                    Get personalized advice about products, styling, routines & more!
+                  </p>
+                </div>
                 </div>
               );
             })}
           </>
         )}
       </div>
+
+      {/* Chat Modal */}
+      {showChat && currentChatData && (
+        <HairAnalystChat
+          analysisData={currentChatData.analysisData}
+          submissionData={currentChatData.submissionData}
+          onClose={closeChat}
+        />
+      )}
     </div>
   );
 };

@@ -699,6 +699,122 @@ app.post(
   }
 );
 
+// Route for AI Hair Analyst Chat
+app.post('/api/chat-analyst', authenticateUser, async (req, res) => {
+  try {
+    const { message, analysisData, submissionData, chatHistory } = req.body;
+
+    if (!message || !message.trim()) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    console.log('=== AI CHAT REQUEST ===');
+    console.log('User message:', message);
+    console.log('Has analysis data:', !!analysisData);
+    console.log('Has submission data:', !!submissionData);
+
+    // Build context for the AI based on user's analysis
+    let contextPrompt = `You are an expert AI Hair Analyst providing personalized advice. You have access to the user's detailed hair analysis and questionnaire responses.
+
+USER'S HAIR ANALYSIS CONTEXT:
+`;
+
+    // Add analysis data if available
+    if (analysisData) {
+      if (analysisData.detailedAnalysis) {
+        contextPrompt += `Hair Analysis: ${analysisData.detailedAnalysis}\n`;
+      }
+      if (analysisData.metrics) {
+        contextPrompt += `Hair Metrics - Moisture: ${analysisData.metrics.moisture}%, Strength: ${analysisData.metrics.strength}%, Elasticity: ${analysisData.metrics.elasticity}%, Scalp Health: ${analysisData.metrics.scalpHealth}%\n`;
+      }
+      if (analysisData.haircareRoutine) {
+        contextPrompt += `Recommended Routine - Cleansing: ${analysisData.haircareRoutine.cleansing}, Conditioning: ${analysisData.haircareRoutine.conditioning}, Treatments: ${analysisData.haircareRoutine.treatments}, Styling: ${analysisData.haircareRoutine.styling}\n`;
+      }
+      if (analysisData.productSuggestions && analysisData.productSuggestions.length > 0) {
+        contextPrompt += `Product Suggestions: ${analysisData.productSuggestions.join(', ')}\n`;
+      }
+    }
+
+    // Add submission data if available
+    if (submissionData) {
+      contextPrompt += `User's Concerns: ${submissionData.hairProblem || 'Not specified'}\n`;
+      contextPrompt += `Allergies: ${submissionData.allergies || 'None mentioned'}\n`;
+      contextPrompt += `Medications: ${submissionData.medication || 'None mentioned'}\n`;
+      contextPrompt += `Hair Dyed: ${submissionData.dyed || 'Not specified'}\n`;
+      contextPrompt += `Wash Frequency: ${submissionData.washFrequency || 'Not specified'}\n`;
+      if (submissionData.additionalConcerns) {
+        contextPrompt += `Additional Concerns: ${submissionData.additionalConcerns}\n`;
+      }
+    }
+
+    contextPrompt += `
+INSTRUCTIONS:
+- Provide personalized, specific advice based on the user's analysis
+- Reference their specific metrics, concerns, and hair condition when relevant
+- Be conversational, friendly, and encouraging
+- Keep responses focused and actionable
+- If asked about products, suggest types/ingredients rather than specific brands
+- Always relate advice back to their specific hair analysis
+
+CHAT HISTORY:`;
+
+    // Add recent chat history for context
+    if (chatHistory && chatHistory.length > 0) {
+      chatHistory.slice(-3).forEach(msg => {
+        contextPrompt += `\n${msg.type === 'user' ? 'User' : 'AI'}: ${msg.content}`;
+      });
+    }
+
+    contextPrompt += `\n\nUser's current question: ${message}
+
+Please provide a helpful, personalized response based on their hair analysis:`;
+
+    // Call Grok API for chat response
+    const response = await axios.post(
+      'https://api.x.ai/v1/chat/completions',
+      {
+        model: 'grok-2-vision-latest',
+        messages: [
+          {
+            role: 'user',
+            content: contextPrompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 500 // Limit response length for chat
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.XAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 30000
+      }
+    );
+
+    const aiResponse = response.data.choices[0]?.message?.content || 'I apologize, but I had trouble generating a response. Please try asking your question again.';
+
+    console.log('AI chat response generated successfully');
+
+    res.status(200).json({
+      response: aiResponse,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Chat API error:', error.message);
+    if (error.response) {
+      console.error('API Error Status:', error.response.status);
+      console.error('API Error Data:', error.response.data);
+    }
+
+    res.status(500).json({
+      error: 'Failed to process chat request',
+      message: 'I apologize, but I had trouble processing your question. Please try again in a moment.'
+    });
+  }
+});
+
 // Route to fetch submissions (only for authenticated user)
 app.get('/api/submissions', authenticateUser, async (req, res) => {
   try {

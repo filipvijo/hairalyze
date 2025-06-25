@@ -4,6 +4,20 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom animations for AI Hair Analyst button */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
 @layer base {
   html {
     font-family: 'Montserrat', sans-serif;
