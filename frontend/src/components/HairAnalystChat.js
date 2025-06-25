@@ -128,11 +128,18 @@ const HairAnalystChat = ({ analysisData, submissionData, onClose }) => {
               <div
                 className={`max-w-[80%] p-4 rounded-2xl ${
                   message.type === 'user'
-                    ? 'bg-gradient-to-r from-accent to-primary text-white'
+                    ? 'bg-gradient-to-r from-accent to-primary'
                     : 'bg-gray-100 text-gray-800'
                 }`}
               >
-                <p className="whitespace-pre-wrap">{message.content}</p>
+                <p
+                  className={`whitespace-pre-wrap ${
+                    message.type === 'user'
+                      ? 'font-medium'
+                      : ''
+                  }`}
+                  style={message.type === 'user' ? { color: '#ffffff' } : {}}
+                >{message.content}</p>
                 <p className={`text-xs mt-2 ${
                   message.type === 'user' ? 'text-white/70' : 'text-gray-500'
                 }`}>
