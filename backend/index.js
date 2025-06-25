@@ -164,6 +164,23 @@ const parseGrokAnalysis = (analysisText, userData = {}) => {
       treatments: '',
       styling: ''
     },
+    routineSchedule: {
+      dailyRoutine: {
+        morning: [],
+        evening: []
+      },
+      weeklyRoutine: {
+        washDays: {
+          frequency: '',
+          steps: []
+        },
+        treatments: {
+          deepConditioning: '',
+          scalpCare: '',
+          specialTreatments: ''
+        }
+      }
+    },
     productSuggestions: [],
     aiBonusTips: []
   };
@@ -333,6 +350,90 @@ const parseGrokAnalysis = (analysisText, userData = {}) => {
       }
     }
 
+    // Extract Daily/Weekly Hair Care Schedule section
+    const scheduleMatch = analysisText.match(/\*\*Daily\/Weekly Hair Care Schedule\*\*([\s\S]*?)(?=\*\*Product Suggestions\*\*|$)/i);
+    if (scheduleMatch && scheduleMatch[1]) {
+      const scheduleText = scheduleMatch[1].trim();
+
+      // Extract Daily Routine
+      const dailyRoutineMatch = scheduleText.match(/\*\*DAILY ROUTINE:\*\*([\s\S]*?)(?=\*\*WEEKLY ROUTINE:\*\*|$)/i);
+      if (dailyRoutineMatch && dailyRoutineMatch[1]) {
+        const dailyText = dailyRoutineMatch[1].trim();
+
+        // Extract Morning routine
+        const morningMatch = dailyText.match(/Morning:([\s\S]*?)(?=Evening:|$)/i);
+        if (morningMatch && morningMatch[1]) {
+          const morningSteps = morningMatch[1].trim().split(/\r?\n/).filter(line =>
+            line.trim().startsWith('•') || line.trim().startsWith('-') || line.trim().startsWith('*')
+          );
+          structuredAnalysis.routineSchedule.dailyRoutine.morning = morningSteps.map(step =>
+            step.replace(/^[•\-*]\s*/, '').trim()
+          ).filter(step => step.length > 0);
+        }
+
+        // Extract Evening routine
+        const eveningMatch = dailyText.match(/Evening:([\s\S]*?)$/i);
+        if (eveningMatch && eveningMatch[1]) {
+          const eveningSteps = eveningMatch[1].trim().split(/\r?\n/).filter(line =>
+            line.trim().startsWith('•') || line.trim().startsWith('-') || line.trim().startsWith('*')
+          );
+          structuredAnalysis.routineSchedule.dailyRoutine.evening = eveningSteps.map(step =>
+            step.replace(/^[•\-*]\s*/, '').trim()
+          ).filter(step => step.length > 0);
+        }
+      }
+
+      // Extract Weekly Routine
+      const weeklyRoutineMatch = scheduleText.match(/\*\*WEEKLY ROUTINE:\*\*([\s\S]*?)$/i);
+      if (weeklyRoutineMatch && weeklyRoutineMatch[1]) {
+        const weeklyText = weeklyRoutineMatch[1].trim();
+
+        // Extract Wash Days
+        const washDaysMatch = weeklyText.match(/Wash Days[^:]*:([\s\S]*?)(?=Weekly Treatments:|$)/i);
+        if (washDaysMatch && washDaysMatch[1]) {
+          const washDaysText = washDaysMatch[1].trim();
+
+          // Extract frequency
+          const frequencyMatch = washDaysText.match(/\(([^)]+)\)/);
+          if (frequencyMatch && frequencyMatch[1]) {
+            structuredAnalysis.routineSchedule.weeklyRoutine.washDays.frequency = frequencyMatch[1].trim();
+          }
+
+          // Extract wash day steps
+          const washSteps = washDaysText.split(/\r?\n/).filter(line =>
+            line.trim().startsWith('•') || line.trim().startsWith('-') || line.trim().startsWith('*')
+          );
+          structuredAnalysis.routineSchedule.weeklyRoutine.washDays.steps = washSteps.map(step =>
+            step.replace(/^[•\-*]\s*/, '').trim()
+          ).filter(step => step.length > 0);
+        }
+
+        // Extract Weekly Treatments
+        const treatmentsMatch = weeklyText.match(/Weekly Treatments:([\s\S]*?)$/i);
+        if (treatmentsMatch && treatmentsMatch[1]) {
+          const treatmentsText = treatmentsMatch[1].trim();
+
+          // Extract Deep Conditioning
+          const deepCondMatch = treatmentsText.match(/•\s*Deep Conditioning:(.*?)(?=•|$)/i);
+          if (deepCondMatch && deepCondMatch[1]) {
+            structuredAnalysis.routineSchedule.weeklyRoutine.treatments.deepConditioning = deepCondMatch[1].trim();
+          }
+
+          // Extract Scalp Care
+          const scalpCareMatch = treatmentsText.match(/•\s*Scalp Care:(.*?)(?=•|$)/i);
+          if (scalpCareMatch && scalpCareMatch[1]) {
+            structuredAnalysis.routineSchedule.weeklyRoutine.treatments.scalpCare = scalpCareMatch[1].trim();
+          }
+
+          // Extract Special Treatments
+          const specialMatch = treatmentsText.match(/•\s*Special Treatments:(.*?)(?=•|$)/i);
+          if (specialMatch && specialMatch[1]) {
+            structuredAnalysis.routineSchedule.weeklyRoutine.treatments.specialTreatments = specialMatch[1].trim();
+          }
+        }
+      }
+    }
+
     // Extract Product Suggestions section
     const suggestionsMatch = analysisText.match(/\*\*Product Suggestions\*\*([\s\S]*?)(?=\*\*AI Bonus Tips\*\*|$)/i);
     if (suggestionsMatch && suggestionsMatch[1]) {
@@ -382,6 +483,13 @@ const parseGrokAnalysis = (analysisText, userData = {}) => {
       detailedAnalysis: analysisText,
       metrics: { moisture: 50, strength: 50, elasticity: 50, scalpHealth: 50 },
       haircareRoutine: { cleansing: '', conditioning: '', treatments: '', styling: '' },
+      routineSchedule: {
+        dailyRoutine: { morning: [], evening: [] },
+        weeklyRoutine: {
+          washDays: { frequency: '', steps: [] },
+          treatments: { deepConditioning: '', scalpCare: '', specialTreatments: '' }
+        }
+      },
       productSuggestions: [],
       aiBonusTips: []
     };
@@ -421,6 +529,25 @@ const analyzeImageWithGrok = async (imageUrls, isHairAnalysis = true, userData =
             '2. **Conditioning:** Specific recommendations for conditioning\n' +
             '3. **Treatments:** Specific recommendations for treatments like masks or oils\n' +
             '4. **Styling:** Specific recommendations for styling and heat protection\n\n' +
+            '**Daily/Weekly Hair Care Schedule**\nProvide a comprehensive, step-by-step schedule that shows exactly when and how to use each recommended product or technique. Include specific instructions, timing, and frequency. Format as follows:\n\n' +
+            '**DAILY ROUTINE:**\n' +
+            'Morning:\n' +
+            '• Step 1: [Specific action with detailed instructions - e.g., "Apply leave-in conditioner to damp hair, focusing on mid-lengths to ends"]\n' +
+            '• Step 2: [Next specific action with instructions]\n' +
+            '• Step 3: [Continue with styling steps]\n\n' +
+            'Evening:\n' +
+            '• Step 1: [Evening routine steps if applicable]\n' +
+            '• Step 2: [Additional evening care]\n\n' +
+            '**WEEKLY ROUTINE:**\n' +
+            'Wash Days (specify frequency - e.g., "2-3 times per week"):\n' +
+            '• Step 1: [Pre-wash treatment if needed - e.g., "Apply oil treatment 30 minutes before washing"]\n' +
+            '• Step 2: [Shampooing instructions - e.g., "Massage shampoo into scalp for 2-3 minutes, avoid lengths"]\n' +
+            '• Step 3: [Conditioning instructions - e.g., "Apply conditioner from mid-length to ends, leave for 3-5 minutes"]\n' +
+            '• Step 4: [Post-wash care - e.g., "Gently squeeze out excess water, apply leave-in treatment"]\n\n' +
+            'Weekly Treatments:\n' +
+            '• Deep Conditioning: [Specific instructions and frequency - e.g., "Once weekly, apply mask for 15-20 minutes"]\n' +
+            '• Scalp Care: [Scalp treatment instructions if needed]\n' +
+            '• Special Treatments: [Any additional weekly treatments]\n\n' +
             '**Product Suggestions**\nRecommend specific types of hair care products that directly address the user\'s unique hair concerns, allergies, and conditions. Be specific about ingredients to look for or avoid based on their needs. Format as a bulleted list:\n' +
             '- [Specific shampoo type with ingredients beneficial for their condition]\n' +
             '- [Specific conditioner type with ingredients beneficial for their condition]\n' +

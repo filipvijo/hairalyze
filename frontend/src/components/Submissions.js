@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import HairAnalystChat from './HairAnalystChat';
+import RoutineSchedule from './RoutineSchedule';
 
 const Submissions = () => {
   const [submissions, setSubmissions] = useState([]);
@@ -290,6 +291,9 @@ const Submissions = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Detailed Routine Schedule */}
+                <RoutineSchedule routineSchedule={latestAnalysis.routineSchedule} />
 
                 {/* Product Suggestions Card */}
                 <div className="bg-gradient-to-br from-primary/5 to-success/5 p-6 rounded-xl shadow-card mb-6 transform transition-all duration-300 hover:shadow-elevated hover:-translate-y-1 animate-fade-in delay-300 border border-primary/10">
@@ -707,6 +711,9 @@ const Submissions = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Detailed Routine Schedule */}
+                <RoutineSchedule routineSchedule={submission.analysis?.routineSchedule} />
 
                 {/* Product Suggestions Card */}
                 <div className="bg-gradient-to-br from-primary/5 to-success/5 p-6 rounded-xl shadow-card mb-6 transform transition-all duration-300 hover:shadow-elevated hover:-translate-y-1 animate-fade-in delay-300 border border-primary/10">

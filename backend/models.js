@@ -24,6 +24,25 @@ const analysisSchema = new mongoose.Schema({
     styling: { type: String, default: '' }
   },
 
+  // Detailed routine schedule with step-by-step instructions
+  routineSchedule: {
+    dailyRoutine: {
+      morning: [{ type: String }], // Array of morning routine steps
+      evening: [{ type: String }]  // Array of evening routine steps
+    },
+    weeklyRoutine: {
+      washDays: {
+        frequency: { type: String, default: '' }, // e.g., "2-3 times per week"
+        steps: [{ type: String }] // Array of wash day steps
+      },
+      treatments: {
+        deepConditioning: { type: String, default: '' },
+        scalpCare: { type: String, default: '' },
+        specialTreatments: { type: String, default: '' }
+      }
+    }
+  },
+
   // Product suggestions
   productSuggestions: [{ type: String }],
 
