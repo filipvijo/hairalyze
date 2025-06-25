@@ -50,7 +50,7 @@ const authenticateUser = async (req, res, next) => {
       try {
         // For now, we'll decode the token client-side info
         // This is NOT secure for production but works for testing user separation
-        const userIdHeader = req.headers['x-user-id'];
+        const userIdHeader = req.headers['x-user-id'] || req.headers['X-User-ID'];
         if (!userIdHeader) {
           return res.status(401).json({ error: 'User ID header required for development' });
         }
@@ -530,6 +530,11 @@ app.post(
     }
 
     try {
+      console.log('=== NEW SUBMISSION REQUEST ===');
+      console.log('Request headers:', {
+        authorization: req.headers.authorization ? 'Bearer [TOKEN]' : 'Missing',
+        'x-user-id': req.headers['x-user-id'] || req.headers['X-User-ID'] || 'Missing'
+      });
       console.log('Request body:', JSON.stringify(req.body, null, 2));
       console.log('Request files:', req.files ? Object.keys(req.files) : 'No files');
 
