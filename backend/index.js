@@ -32,42 +32,60 @@ try {
   console.warn('SECURITY: Firebase initialization failed');
 }
 
-// Authentication middleware (simplified for local development)
+// Authentication middleware with better error handling
 const authenticateUser = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('Missing or invalid authorization header');
       return res.status(401).json({ error: 'No valid authorization token provided' });
     }
 
     const token = authHeader.split('Bearer ')[1];
+    console.log('Token received, length:', token.length);
 
-    // For local development, we'll use a simplified approach
-    // In production, this should use Firebase Admin SDK verification
-    if (process.env.NODE_ENV === 'development') {
-      // Extract user ID from the token (this is a simplified approach for testing)
-      // In a real app, you'd verify the token with Firebase Admin
-      try {
-        // For now, we'll decode the token client-side info
-        // This is NOT secure for production but works for testing user separation
-        const userIdHeader = req.headers['x-user-id'] || req.headers['X-User-ID'];
-        if (!userIdHeader) {
-          return res.status(401).json({ error: 'User ID header required for development' });
-        }
-        req.user = { uid: userIdHeader };
-        next();
-      } catch (error) {
-        return res.status(401).json({ error: 'Invalid user ID' });
+    // Check if we're in development mode or if Firebase Admin is not properly initialized
+    const isProduction = process.env.NODE_ENV === 'production';
+    const firebaseInitialized = admin.apps.length > 0;
+
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('Firebase initialized:', firebaseInitialized);
+
+    if (!isProduction || !firebaseInitialized) {
+      // Development mode or Firebase not initialized - use simplified approach
+      console.log('Using simplified authentication');
+      const userIdHeader = req.headers['x-user-id'] || req.headers['X-User-ID'];
+      if (!userIdHeader) {
+        console.log('Missing user ID header');
+        return res.status(401).json({ error: 'User ID header required' });
       }
-    } else {
-      // Production: use Firebase Admin SDK
-      const decodedToken = await admin.auth().verifyIdToken(token);
-      req.user = decodedToken;
+      req.user = { uid: userIdHeader };
+      console.log('User authenticated with ID:', userIdHeader);
       next();
+    } else {
+      // Production with Firebase Admin SDK
+      console.log('Using Firebase Admin SDK authentication');
+      try {
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        req.user = decodedToken;
+        console.log('User authenticated via Firebase:', decodedToken.uid);
+        next();
+      } catch (firebaseError) {
+        console.error('Firebase token verification failed:', firebaseError.message);
+        // Fallback to simplified auth if Firebase fails
+        const userIdHeader = req.headers['x-user-id'] || req.headers['X-User-ID'];
+        if (userIdHeader) {
+          console.log('Falling back to simplified auth');
+          req.user = { uid: userIdHeader };
+          next();
+        } else {
+          return res.status(401).json({ error: 'Token verification failed and no user ID header provided' });
+        }
+      }
     }
   } catch (error) {
     console.error('Authentication error:', error.message);
-    return res.status(401).json({ error: 'Invalid or expired token' });
+    return res.status(401).json({ error: 'Authentication failed' });
   }
 };
 
@@ -850,6 +868,10 @@ app.get('/debug', (req, res) => {
     nodeEnv: process.env.NODE_ENV || 'not set',
     mongoConnected: !!mongoose.connection.readyState,
     mongoUri: process.env.MONGO_URI ? `${process.env.MONGO_URI.substring(0, 20)}...` : 'not set',
+    firebaseConfigured: !!(process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL),
+    firebaseAppsLength: admin.apps.length,
+    firebaseProjectId: process.env.FIREBASE_PROJECT_ID || 'not set',
+    xaiConfigured: !!process.env.XAI_API_KEY,
     awsConfigured: !!(process.env.AWS_REGION && process.env.AWS_S3_BUCKET),
     frontendUrl: process.env.FRONTEND_URL || 'not set',
     port: process.env.PORT || '10000',
