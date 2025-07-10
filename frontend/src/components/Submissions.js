@@ -13,8 +13,38 @@ const Submissions = () => {
   const [latestAnalysis, setLatestAnalysis] = useState(null);
   const [showChat, setShowChat] = useState(false);
   const [currentChatData, setCurrentChatData] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const mobileMenuRef = React.useRef(null);
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleBackToHomepage = () => {
+    navigate('/');
+    setIsMobileMenuOpen(false);
+  };
+
+  // Close mobile menu when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    if (isMobileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isMobileMenuOpen]);
 
   useEffect(() => {
     // Check for latest analysis in localStorage first
@@ -108,7 +138,51 @@ const Submissions = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-secondary to-light py-10">
+    <div className="min-h-screen bg-gradient-to-br from-secondary to-light py-10 relative">
+      {/* Desktop Navigation */}
+      <div className="absolute top-6 right-6 hidden md:flex items-center space-x-4 z-10">
+        <button
+          onClick={handleBackToHomepage}
+          className="flex items-center px-4 py-2 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white font-medium hover:bg-opacity-30 transition-all duration-300 border border-white border-opacity-30"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+          </svg>
+          Back to Homepage
+        </button>
+      </div>
+
+      {/* Mobile Hamburger Menu */}
+      <div ref={mobileMenuRef} className="absolute top-6 right-6 md:hidden z-50">
+        <button
+          onClick={toggleMobileMenu}
+          className="p-3 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white hover:bg-opacity-30 transition-all duration-300 touch-manipulation"
+          style={{ WebkitTapHighlightColor: 'transparent' }}
+          aria-label="Toggle menu"
+        >
+          <div className="w-6 h-6 flex flex-col justify-center items-center">
+            <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-1.5' : 'mb-1'}`}></span>
+            <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${isMobileMenuOpen ? 'opacity-0' : 'mb-1'}`}></span>
+            <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${isMobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
+          </div>
+        </button>
+
+        {/* Mobile Menu Dropdown */}
+        {isMobileMenuOpen && (
+          <div className="absolute top-16 right-0 w-64 bg-white bg-opacity-95 backdrop-filter backdrop-blur-sm rounded-xl shadow-lg border border-white border-opacity-30 overflow-hidden mobile-menu-dropdown">
+            <button
+              onClick={handleBackToHomepage}
+              className="w-full px-4 py-3 text-left text-gray-800 hover:bg-gray-100 transition-colors duration-200 flex items-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+              </svg>
+              Back to Homepage
+            </button>
+          </div>
+        )}
+      </div>
+
       <div className="max-w-5xl mx-auto px-4">
         <div className="relative mb-16">
           <h1 className="text-5xl font-bold text-center mb-6 bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent relative z-10">Your Hair Analysis Results</h1>
@@ -116,19 +190,6 @@ const Submissions = () => {
           {/* Page intro */}
           <div className="mb-10 bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm p-6 rounded-xl shadow-card border border-white border-opacity-20 relative z-10">
             <p className="text-lg text-neutral text-center">Here's your personalized hair analysis based on your photos and questionnaire responses. Use these insights to create your perfect hair care routine!</p>
-          </div>
-
-          {/* Homepage Button */}
-          <div className="flex justify-center mb-8">
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center px-6 py-3 bg-gradient-to-r from-primary to-accent text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-              </svg>
-              <span>New Hair Analysis</span>
-            </button>
           </div>
         </div>
 
