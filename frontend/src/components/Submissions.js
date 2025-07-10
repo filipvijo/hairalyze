@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import HairAnalystChat from './HairAnalystChat';
 import RoutineSchedule from './RoutineSchedule';
 
@@ -13,6 +14,7 @@ const Submissions = () => {
   const [showChat, setShowChat] = useState(false);
   const [currentChatData, setCurrentChatData] = useState(null);
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check for latest analysis in localStorage first
@@ -114,6 +116,19 @@ const Submissions = () => {
           {/* Page intro */}
           <div className="mb-10 bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm p-6 rounded-xl shadow-card border border-white border-opacity-20 relative z-10">
             <p className="text-lg text-neutral text-center">Here's your personalized hair analysis based on your photos and questionnaire responses. Use these insights to create your perfect hair care routine!</p>
+          </div>
+
+          {/* Homepage Button */}
+          <div className="flex justify-center mb-8">
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center px-6 py-3 bg-gradient-to-r from-primary to-accent text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+              </svg>
+              <span>New Hair Analysis</span>
+            </button>
           </div>
         </div>
 
