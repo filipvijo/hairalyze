@@ -245,4 +245,108 @@ p {
     padding: 0.75rem 1.5rem;
     font-size: 1rem;
   }
+
+  /* Mobile navigation buttons */
+  .mobile-nav-buttons {
+    position: fixed !important;
+    top: 1rem !important;
+    right: 1rem !important;
+    left: 1rem !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 0.5rem !important;
+    z-index: 50 !important;
+    flex-wrap: wrap !important;
+  }
+
+  .mobile-nav-buttons a,
+  .mobile-nav-buttons button {
+    padding: 0.75rem 1rem !important;
+    font-size: 0.875rem !important;
+    min-height: 44px !important; /* Minimum touch target size */
+    min-width: 44px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    /* Fallback for browsers without backdrop-filter support */
+    background: rgba(255, 255, 255, 0.3) !important;
+  }
+
+  /* Enhanced backdrop support for mobile */
+  @supports (backdrop-filter: blur(10px)) {
+    .mobile-nav-buttons a,
+    .mobile-nav-buttons button {
+      backdrop-filter: blur(10px) !important;
+      -webkit-backdrop-filter: blur(10px) !important;
+    }
+  }
+
+  /* Hide greeting text on very small screens */
+  .mobile-greeting {
+    display: none !important;
+  }
+
+  /* Improve touch targets and prevent zoom on double tap */
+  .touch-manipulation {
+    touch-action: manipulation !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    -khtml-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+  }
+
+  /* Ensure buttons are above other content */
+  .mobile-nav-buttons * {
+    position: relative !important;
+    z-index: 51 !important;
+  }
+
+  /* Mobile hamburger menu styles */
+  .mobile-hamburger {
+    position: fixed !important;
+    top: 1.5rem !important;
+    right: 1.5rem !important;
+    z-index: 60 !important;
+  }
+
+  .mobile-menu-dropdown {
+    animation: slideDown 0.3s ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Hamburger icon animation */
+  .hamburger-line {
+    transform-origin: center;
+  }
+
+  /* iOS Safari specific fixes */
+  @supports (-webkit-touch-callout: none) {
+    .mobile-hamburger {
+      -webkit-transform: translateZ(0) !important;
+      transform: translateZ(0) !important;
+    }
+
+    .mobile-hamburger button {
+      -webkit-appearance: none !important;
+      appearance: none !important;
+      border-radius: 9999px !important;
+      cursor: pointer !important;
+    }
+  }
+
+  /* Ensure menu is above other content */
+  .mobile-menu-dropdown {
+    z-index: 55 !important;
+  }
 }

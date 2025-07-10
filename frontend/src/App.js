@@ -20,6 +20,8 @@ const PrivateRoute = ({ children }) => {
 const Home = () => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate(); // Use navigate for logout redirect
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const mobileMenuRef = React.useRef(null);
 
   const handleLogout = async () => {
     try {
@@ -31,6 +33,38 @@ const Home = () => {
       // Handle logout error (optional)
     }
   };
+
+  const handleViewResults = (e) => {
+    console.log("View Results clicked", { currentUser: currentUser?.email, isMobile: window.innerWidth <= 768 });
+    // Prevent any default behavior that might interfere
+    e.preventDefault();
+    e.stopPropagation();
+    navigate('/submissions');
+    setIsMobileMenuOpen(false); // Close menu after navigation
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  // Close mobile menu when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    if (isMobileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isMobileMenuOpen]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
@@ -44,14 +78,17 @@ const Home = () => {
         />
       </div>
 
-      {/* Auth status and Logout/Login link */}
-      <div className="absolute top-6 right-6 flex items-center space-x-4 z-10">
+      {/* Desktop Navigation */}
+      <div className="absolute top-6 right-6 hidden md:flex items-center space-x-4 z-10">
         {currentUser ? (
           <>
-            <span className="text-white font-medium hidden md:inline">Hello, {currentUser.email.split('@')[0]}</span>
-            <Link to="/submissions" className="px-4 py-2 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white font-medium hover:bg-opacity-30 transition-all duration-300 border border-white border-opacity-30">
+            <span className="text-white font-medium">Hello, {currentUser.email.split('@')[0]}</span>
+            <button
+              onClick={handleViewResults}
+              className="px-4 py-2 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white font-medium hover:bg-opacity-30 transition-all duration-300 border border-white border-opacity-30"
+            >
               View Results
-            </Link>
+            </button>
             <button
               onClick={handleLogout}
               className="px-4 py-2 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white font-medium hover:bg-opacity-30 transition-all duration-300 hover:text-accent"
@@ -61,13 +98,81 @@ const Home = () => {
           </>
         ) : (
           <>
-            <Link to="/login" className="px-4 py-2 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white font-medium hover:bg-opacity-30 transition-all duration-300 border border-white border-opacity-30">
+            <Link
+              to="/login"
+              className="px-4 py-2 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white font-medium hover:bg-opacity-30 transition-all duration-300 border border-white border-opacity-30"
+            >
               Log In
             </Link>
-            <Link to="/signup" className="px-4 py-2 rounded-full bg-gradient-to-r from-accent to-primary text-white font-medium hover:shadow-md transition-all duration-300">
+            <Link
+              to="/signup"
+              className="px-4 py-2 rounded-full bg-gradient-to-r from-accent to-primary text-white font-medium hover:shadow-md transition-all duration-300"
+            >
               Sign Up
             </Link>
           </>
+        )}
+      </div>
+
+      {/* Mobile Hamburger Menu */}
+      <div ref={mobileMenuRef} className="absolute top-6 right-6 md:hidden z-50">
+        <button
+          onClick={toggleMobileMenu}
+          className="p-3 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white hover:bg-opacity-30 transition-all duration-300 touch-manipulation"
+          style={{ WebkitTapHighlightColor: 'transparent' }}
+          aria-label="Toggle menu"
+        >
+          <div className="w-6 h-6 flex flex-col justify-center items-center">
+            <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-1.5' : 'mb-1'}`}></span>
+            <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${isMobileMenuOpen ? 'opacity-0' : 'mb-1'}`}></span>
+            <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${isMobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
+          </div>
+        </button>
+
+        {/* Mobile Menu Dropdown */}
+        {isMobileMenuOpen && (
+          <div className="absolute top-16 right-0 w-64 bg-white bg-opacity-95 backdrop-filter backdrop-blur-sm rounded-xl shadow-lg border border-white border-opacity-30 overflow-hidden mobile-menu-dropdown">
+            {currentUser ? (
+              <>
+                <div className="px-4 py-3 border-b border-gray-200">
+                  <p className="text-sm text-gray-600">Hello,</p>
+                  <p className="font-medium text-gray-800">{currentUser.email.split('@')[0]}</p>
+                </div>
+                <button
+                  onClick={handleViewResults}
+                  className="w-full px-4 py-3 text-left text-gray-800 hover:bg-gray-100 transition-colors duration-200 border-b border-gray-200"
+                >
+                  📊 View Results
+                </button>
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full px-4 py-3 text-left text-gray-800 hover:bg-gray-100 transition-colors duration-200"
+                >
+                  🚪 Log Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block w-full px-4 py-3 text-left text-gray-800 hover:bg-gray-100 transition-colors duration-200 border-b border-gray-200"
+                >
+                  🔑 Log In
+                </Link>
+                <Link
+                  to="/signup"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block w-full px-4 py-3 text-left text-gray-800 hover:bg-gray-100 transition-colors duration-200"
+                >
+                  ✨ Sign Up
+                </Link>
+              </>
+            )}
+          </div>
         )}
       </div>
 
