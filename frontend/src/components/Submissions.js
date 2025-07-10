@@ -140,10 +140,10 @@ const Submissions = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-secondary to-light py-10 relative">
       {/* Desktop Navigation */}
-      <div className="absolute top-6 right-6 hidden md:flex items-center space-x-4 z-10">
+      <div className="absolute top-6 right-6 hidden md:flex items-center space-x-4 z-50">
         <button
           onClick={handleBackToHomepage}
-          className="flex items-center px-4 py-2 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white font-medium hover:bg-opacity-30 transition-all duration-300 border border-white border-opacity-30"
+          className="flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-primary to-accent text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
             <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
@@ -156,7 +156,7 @@ const Submissions = () => {
       <div ref={mobileMenuRef} className="absolute top-6 right-6 md:hidden z-50">
         <button
           onClick={toggleMobileMenu}
-          className="p-3 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white hover:bg-opacity-30 transition-all duration-300 touch-manipulation"
+          className="p-3 rounded-full bg-gradient-to-r from-primary to-accent text-white shadow-lg hover:shadow-xl transition-all duration-300 touch-manipulation transform hover:scale-105"
           style={{ WebkitTapHighlightColor: 'transparent' }}
           aria-label="Toggle menu"
         >
