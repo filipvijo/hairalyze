@@ -5,6 +5,7 @@ import axios from 'axios';
 import imageCompression from 'browser-image-compression';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../supabase';
 
 Modal.setAppElement('#root');
 
@@ -62,8 +63,22 @@ const Questionnaire = () => {
     setIsSubmitting(true);
 
     try {
-      // Get the user's authentication token
-      const token = await currentUser.getIdToken();
+      // Get authentication token based on provider
+      let token = null;
+
+      if (currentUser.isFirebaseUser) {
+        // Firebase user - get Firebase token
+        console.log('🔥 Getting Firebase token for submission');
+        token = await currentUser.getIdToken();
+      } else {
+        // Supabase user - get Supabase token
+        console.log('🔵 Getting Supabase token for submission');
+        const { data: { session } } = await supabase.auth.getSession();
+        token = session?.access_token;
+        if (!token) {
+          throw new Error('Supabase authentication token not available. Please log in again.');
+        }
+      }
 
       const data = new FormData();
       data.append('hairProblem', formData.hairProblem);
@@ -76,18 +91,22 @@ const Questionnaire = () => {
       formData.hairPhotos.forEach((photo) => data.append('hairPhotos', photo));
       formData.productImages.forEach((image) => data.append('productImages', image));
 
+      // Use environment variable for API URL
       const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-      console.log('Submitting to API URL:', apiUrl);
+      console.log('🔧 Submitting to API URL:', apiUrl);
 
       console.log('About to submit with headers:', {
         'Authorization': `Bearer ${token}`,
-        'X-User-ID': currentUser.uid
+        'X-User-ID': currentUser.id
       });
+
+      // Get user ID based on auth provider
+      const userId = currentUser.isFirebaseUser ? currentUser.uid : currentUser.id;
 
       const response = await axios.post(`${apiUrl}/api/submit`, data, {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-User-ID': currentUser.uid // For development
+          'X-User-ID': userId // Works for both Firebase (uid) and Supabase (id)
         }
       });
       console.log('Submission response:', response.data);

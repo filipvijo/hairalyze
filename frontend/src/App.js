@@ -8,6 +8,19 @@ import Signup from './components/Signup'; // Import Signup
 import Login from './components/Login'; // Import Login
 import './App.css';
 
+// Debug environment variables
+console.log('🔧 Environment Debug:', {
+  NODE_ENV: process.env.NODE_ENV,
+  REACT_APP_API_URL: process.env.REACT_APP_API_URL,
+  REACT_APP_SUPABASE_URL: process.env.REACT_APP_SUPABASE_URL,
+  allEnvVars: Object.keys(process.env).filter(key => key.startsWith('REACT_APP_'))
+});
+
+// Import test for development
+if (process.env.NODE_ENV === 'development') {
+  import('./test-auth');
+}
+
 // PrivateRoute component to protect routes
 const PrivateRoute = ({ children }) => {
   const { currentUser } = useAuth();

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../supabase';
 
 const HairAnalystChat = ({ analysisData, submissionData, onClose }) => {
   const [messages, setMessages] = useState([
@@ -51,7 +52,21 @@ const HairAnalystChat = ({ analysisData, submissionData, onClose }) => {
     setError(null);
 
     try {
-      const token = await currentUser.getIdToken();
+      // Get authentication token based on provider
+      let token = null;
+
+      if (currentUser.isFirebaseUser) {
+        // Firebase user - get Firebase token
+        token = await currentUser.getIdToken();
+      } else {
+        // Supabase user - get Supabase token
+        const { data: { session } } = await supabase.auth.getSession();
+        token = session?.access_token;
+        if (!token) {
+          throw new Error('Supabase authentication token not available. Please log in again.');
+        }
+      }
+      // Use environment variable for API URL
       const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
       const response = await axios.post(`${apiUrl}/api/chat-analyst`, {
@@ -62,7 +77,7 @@ const HairAnalystChat = ({ analysisData, submissionData, onClose }) => {
       }, {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'X-User-ID': currentUser.uid,
+          'X-User-ID': currentUser.isFirebaseUser ? currentUser.uid : currentUser.id,
           'Content-Type': 'application/json'
         }
       });

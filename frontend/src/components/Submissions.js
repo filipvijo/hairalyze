@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../supabase';
 import HairAnalystChat from './HairAnalystChat';
 import RoutineSchedule from './RoutineSchedule';
 
@@ -72,12 +73,60 @@ const Submissions = () => {
           return;
         }
 
-        const token = await currentUser.getIdToken();
+        // Get authentication token based on provider
+        let token = null;
+
+        if (currentUser.isFirebaseUser) {
+          // Firebase user - get Firebase token
+          console.log('🔥 Getting Firebase token for user:', currentUser.email);
+          try {
+            token = await currentUser.getIdToken();
+            console.log('✅ Firebase token obtained');
+          } catch (err) {
+            console.error('❌ Failed to get Firebase token:', err);
+            setError('Failed to get Firebase authentication token. Please log in again.');
+            setLoading(false);
+            return;
+          }
+        } else {
+          // Supabase user - get Supabase token
+          console.log('🔵 Getting Supabase token for user:', currentUser.email);
+          try {
+            const { data: { session } } = await supabase.auth.getSession();
+            token = session?.access_token;
+            if (!token) {
+              throw new Error('No Supabase session found');
+            }
+            console.log('✅ Supabase token obtained');
+          } catch (err) {
+            console.error('❌ Failed to get Supabase token:', err);
+            setError('Failed to get Supabase authentication token. Please log in again.');
+            setLoading(false);
+            return;
+          }
+        }
+
+        // Use environment variable for API URL
         const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        console.log('🔧 API URL being used:', apiUrl);
+        console.log('🔧 Environment check:', {
+          REACT_APP_API_URL: process.env.REACT_APP_API_URL,
+          NODE_ENV: process.env.NODE_ENV,
+          allReactAppVars: Object.keys(process.env).filter(key => key.startsWith('REACT_APP_'))
+        });
+        console.log('🔧 Environment variables:', {
+          REACT_APP_API_URL: process.env.REACT_APP_API_URL,
+          NODE_ENV: process.env.NODE_ENV
+        });
+
+        // Get user ID based on auth provider
+        const userId = currentUser.isFirebaseUser ? currentUser.uid : currentUser.id;
+        console.log('🔧 Using user ID:', userId);
+
         const response = await axios.get(`${apiUrl}/api/submissions`, {
           headers: {
             'Authorization': `Bearer ${token}`,
-            'X-User-ID': currentUser.uid // For development
+            'X-User-ID': userId // Works for both Firebase (uid) and Supabase (id)
           }
         });
         setSubmissions(response.data);
@@ -574,7 +623,7 @@ const Submissions = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-gray-700">
-                        <span className="font-semibold">Hair Concern:</span> {submission.hairProblem || 'N/A'}
+                        <span className="font-semibold">Hair Concern:</span> {submission.hair_problem || 'N/A'}
                       </p>
                       <p className="text-gray-700">
                         <span className="font-semibold">Allergies:</span> {submission.allergies || 'None'}
@@ -586,11 +635,11 @@ const Submissions = () => {
                         <span className="font-semibold">Hair Dyed:</span> {submission.dyed || 'N/A'}
                       </p>
                       <p className="text-gray-700">
-                        <span className="font-semibold">Wash Frequency:</span> {submission.washFrequency || 'N/A'}
+                        <span className="font-semibold">Wash Frequency:</span> {submission.wash_frequency || 'N/A'}
                       </p>
-                      {submission.additionalConcerns && (
+                      {submission.additional_concerns && (
                         <p className="text-gray-700 mt-2 p-2 bg-primary/5 rounded-lg">
-                          <span className="font-semibold">Your Concerns:</span> {submission.additionalConcerns}
+                          <span className="font-semibold">Your Concerns:</span> {submission.additional_concerns}
                         </p>
                       )}
                     </div>
@@ -619,11 +668,11 @@ const Submissions = () => {
                           </div>
                         </div>
                       )}
-                      {submission.hairPhotos?.length > 0 && (
+                      {submission.hair_photos?.length > 0 && (
                         <div className="mt-4">
                           <p className="text-gray-700 font-semibold">Hair Photos:</p>
                           <div className="flex space-x-2 mt-2">
-                            {submission.hairPhotos.map((photo, idx) => (
+                            {submission.hair_photos.map((photo, idx) => (
                               <img
                                 key={idx}
                                 src={photo} // Use the photo URL directly
@@ -820,7 +869,7 @@ const Submissions = () => {
                       <div>
                         <h3 className="font-semibold mb-2">Recommended Styles:</h3>
                         <ul className="space-y-2 mb-4">
-                          {submission.hairProblem?.includes("oily") ? (
+                          {submission.hair_problem?.includes("oily") ? (
                             <>
                               <li className="flex items-start">
                                 <span className="text-primary mr-3 mt-1">•</span>
@@ -831,7 +880,7 @@ const Submissions = () => {
                                 <span>Textured bob cuts that add volume and reduce the appearance of oil</span>
                               </li>
                             </>
-                          ) : submission.hairProblem?.includes("dry") ? (
+                          ) : submission.hair_problem?.includes("dry") ? (
                             <>
                               <li className="flex items-start">
                                 <span className="text-primary mr-3 mt-1">•</span>
