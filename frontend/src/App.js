@@ -49,7 +49,12 @@ const Home = () => {
   };
 
   const handleViewResults = (e) => {
-    console.log("View Results clicked", { currentUser: currentUser?.email, isMobile: window.innerWidth <= 768 });
+    console.log("View Results clicked", {
+      currentUser: currentUser?.email,
+      isMobile: window.innerWidth <= 768,
+      target: e.target,
+      timestamp: new Date().toISOString()
+    });
     // Prevent any default behavior that might interfere
     e.preventDefault();
     e.stopPropagation();
@@ -93,13 +98,14 @@ const Home = () => {
       </div>
 
       {/* Desktop Navigation */}
-      <div className="absolute top-6 right-6 hidden md:flex items-center space-x-4 z-10">
+      <div className="absolute top-6 right-6 hidden md:flex items-center space-x-4 z-50">
         {currentUser ? (
           <>
             <span className="text-white font-medium">Hello, {currentUser.email.split('@')[0]}</span>
             <button
               onClick={handleViewResults}
-              className="px-4 py-2 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white font-medium hover:bg-opacity-30 transition-all duration-300 border border-white border-opacity-30"
+              className="px-4 py-2 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white font-medium hover:bg-opacity-30 transition-all duration-300 border border-white border-opacity-30 cursor-pointer relative z-50"
+              style={{ pointerEvents: 'auto' }}
             >
               View Results
             </button>
