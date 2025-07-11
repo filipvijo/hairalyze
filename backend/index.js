@@ -8,35 +8,17 @@ const axios = require('axios');
 const { body, validationResult } = require('express-validator');
 
 // Supabase integration
-const { supabase, testSupabaseConnection } = require('./supabase');
-const { authenticateUser, authenticateUserLegacy } = require('./middleware/auth');
+const { supabase } = require('./supabase');
+const { authenticateUser } = require('./middleware/auth');
 
 // Legacy imports (will be removed after migration)
 const { Submission } = require('./models');
-const admin = require('firebase-admin');
 
 dotenv.config();
 const app = express();
 
-// Initialize Firebase Admin SDK
-try {
-  if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-    });
-    console.log('Firebase Admin initialized successfully');
-  }
-} catch (error) {
-  console.error('Firebase Admin initialization failed:', error.message);
-  console.warn('SECURITY: Firebase initialization failed');
-}
-
 // Note: Authentication middleware now imported from ./middleware/auth.js
-// Using new Supabase authentication by default, with legacy Firebase fallback
+// Using Supabase authentication
 
 // Middleware
 app.use(cors({
@@ -955,31 +937,15 @@ app.get('/api/submissions', authenticateUser, async (req, res) => {
     }
 
     // Fetch submissions for the authenticated user, sorted by creation date descending
-    console.log(`🔍 Querying Supabase for user: ${req.user.uid} (provider: ${req.user.authProvider})`);
+    console.log(`🔍 Querying Supabase for user: ${req.user.uid}`);
 
-    let submissions, error;
-
-    if (req.user.authProvider === 'firebase') {
-      // Firebase users: query by original_user_id (TEXT field)
-      console.log('🔥 Querying by original_user_id for Firebase user');
-      const result = await supabase
-        .from('submissions')
-        .select('*')
-        .eq('original_user_id', req.user.uid)
-        .order('created_at', { ascending: false });
-      submissions = result.data;
-      error = result.error;
-    } else {
-      // Supabase users: query by user_id (UUID field)
-      console.log('🔵 Querying by user_id for Supabase user');
-      const result = await supabase
-        .from('submissions')
-        .select('*')
-        .eq('user_id', req.user.uid)
-        .order('created_at', { ascending: false });
-      submissions = result.data;
-      error = result.error;
-    }
+    // Supabase users: query by user_id (UUID field)
+    console.log('🔵 Querying by user_id for Supabase user');
+    const { data: submissions, error } = await supabase
+      .from('submissions')
+      .select('*')
+      .eq('user_id', req.user.uid)
+      .order('created_at', { ascending: false });
 
     console.log(`📊 Query result: ${submissions ? submissions.length : 0} submissions, error: ${error ? error.message : 'none'}`);
 
@@ -1044,10 +1010,6 @@ app.get('/debug', async (req, res) => {
     supabaseStatus,
     supabaseSubmissions: submissionCount,
     supabaseUrl: process.env.SUPABASE_URL ? `${process.env.SUPABASE_URL.substring(0, 30)}...` : 'not set',
-    // Legacy Firebase status
-    firebaseConfigured: !!(process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL),
-    firebaseAppsLength: admin.apps.length,
-    firebaseProjectId: process.env.FIREBASE_PROJECT_ID || 'not set',
     // Other services
     xaiConfigured: !!process.env.XAI_API_KEY,
     awsConfigured: !!(process.env.AWS_REGION && process.env.AWS_S3_BUCKET),

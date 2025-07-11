@@ -48,6 +48,18 @@ const Submissions = () => {
   }, [isMobileMenuOpen]);
 
   useEffect(() => {
+    console.log('🔄 Submissions useEffect triggered');
+    console.log('🔄 Current user:', currentUser ? { email: currentUser.email, id: currentUser.id || currentUser.uid } : 'null');
+
+    // Set a timeout to prevent infinite loading
+    const loadingTimeout = setTimeout(() => {
+      console.log('⏰ Loading timeout reached, forcing loading to false');
+      setLoading(false);
+      if (!latestAnalysis && submissions.length === 0) {
+        setError('Loading timed out. Please refresh the page or try again.');
+      }
+    }, 15000); // 15 second timeout
+
     // Check for latest analysis in localStorage first
     const storedAnalysis = localStorage.getItem('latestAnalysis');
     let parsedAnalysis = null;
@@ -56,54 +68,46 @@ const Submissions = () => {
       try {
         parsedAnalysis = JSON.parse(storedAnalysis);
         setLatestAnalysis(parsedAnalysis);
-        console.log('Found analysis in localStorage:', parsedAnalysis);
+        console.log('✅ Found analysis in localStorage:', parsedAnalysis);
         // If we have data in localStorage, set loading to false immediately
         setLoading(false);
+        clearTimeout(loadingTimeout); // Clear timeout since we have data
       } catch (e) {
-        console.error('Error parsing stored analysis:', e);
+        console.error('❌ Error parsing stored analysis:', e);
       }
+    } else {
+      console.log('ℹ️ No analysis found in localStorage');
     }
 
     // Then fetch submissions from the API
     const fetchSubmissions = async () => {
+      console.log('🔄 Starting fetchSubmissions...');
       try {
         if (!currentUser) {
+          console.log('❌ No current user, setting error');
           setError('Please log in to view your submissions.');
           setLoading(false);
           return;
         }
 
-        // Get authentication token based on provider
+        console.log('✅ Current user found, proceeding with API call');
+        // Get Supabase authentication token
         let token = null;
 
-        if (currentUser.isFirebaseUser) {
-          // Firebase user - get Firebase token
-          console.log('🔥 Getting Firebase token for user:', currentUser.email);
-          try {
-            token = await currentUser.getIdToken();
-            console.log('✅ Firebase token obtained');
-          } catch (err) {
-            console.error('❌ Failed to get Firebase token:', err);
-            setError('Failed to get Firebase authentication token. Please log in again.');
-            setLoading(false);
-            return;
+        console.log('🔵 Getting Supabase token for user:', currentUser.email);
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          token = session?.access_token;
+          if (!token) {
+            throw new Error('No Supabase session found');
           }
-        } else {
-          // Supabase user - get Supabase token
-          console.log('🔵 Getting Supabase token for user:', currentUser.email);
-          try {
-            const { data: { session } } = await supabase.auth.getSession();
-            token = session?.access_token;
-            if (!token) {
-              throw new Error('No Supabase session found');
-            }
-            console.log('✅ Supabase token obtained');
-          } catch (err) {
-            console.error('❌ Failed to get Supabase token:', err);
-            setError('Failed to get Supabase authentication token. Please log in again.');
-            setLoading(false);
-            return;
-          }
+          console.log('✅ Supabase token obtained');
+        } catch (err) {
+          console.error('❌ Failed to get Supabase token:', err);
+          setError('Failed to get authentication token. Please log in again.');
+          setLoading(false);
+          clearTimeout(loadingTimeout);
+          return;
         }
 
         // Use environment variable for API URL
@@ -114,41 +118,59 @@ const Submissions = () => {
           NODE_ENV: process.env.NODE_ENV,
           allReactAppVars: Object.keys(process.env).filter(key => key.startsWith('REACT_APP_'))
         });
-        console.log('🔧 Environment variables:', {
-          REACT_APP_API_URL: process.env.REACT_APP_API_URL,
-          NODE_ENV: process.env.NODE_ENV
-        });
 
-        // Get user ID based on auth provider
-        const userId = currentUser.isFirebaseUser ? currentUser.uid : currentUser.id;
+        // Get user ID (Supabase uses 'id')
+        const userId = currentUser.id;
         console.log('🔧 Using user ID:', userId);
+        console.log('🔧 Token length:', token ? token.length : 'null');
 
+        console.log('🔄 Making API request to:', `${apiUrl}/api/submissions`);
         const response = await axios.get(`${apiUrl}/api/submissions`, {
           headers: {
             'Authorization': `Bearer ${token}`,
-            'X-User-ID': userId // Works for both Firebase (uid) and Supabase (id)
+            'X-User-ID': userId // Supabase user ID
           }
         });
+        console.log('✅ API response received:', response.data);
         setSubmissions(response.data);
         setLoading(false);
+        clearTimeout(loadingTimeout); // Clear timeout on success
       } catch (err) {
-        console.error('Error fetching submissions:', err);
+        console.error('❌ Error fetching submissions:', err);
+        console.error('❌ Error details:', {
+          message: err.message,
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+          data: err.response?.data
+        });
+
         // If we have latestAnalysis from localStorage, don't show error
         if (parsedAnalysis) {
+          console.log('ℹ️ Using localStorage data, hiding API error');
           // Just set loading to false, don't show error
           setLoading(false);
         } else {
-          setError('Failed to load submissions. Please try again later.');
+          console.log('❌ No localStorage data, showing error');
+          setError(`Failed to load submissions: ${err.response?.data?.error || err.message}`);
           setLoading(false);
         }
+        clearTimeout(loadingTimeout); // Clear timeout on error
       }
     };
 
     if (currentUser) {
+      console.log('✅ Current user exists, calling fetchSubmissions');
       fetchSubmissions();
     } else {
+      console.log('ℹ️ No current user, setting loading to false');
       setLoading(false);
+      clearTimeout(loadingTimeout); // Clear timeout if no user
     }
+
+    // Cleanup function
+    return () => {
+      clearTimeout(loadingTimeout);
+    };
   }, [currentUser]);
 
   // Chat functions
