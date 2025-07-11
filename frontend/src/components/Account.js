@@ -154,19 +154,33 @@ const Account = () => {
       setDeleteLoading(true);
       setError('');
 
-      // Note: Supabase doesn't have a direct client-side method to delete users
-      // You'll need to implement this on your backend
+      // Get auth token properly
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setError('Authentication required. Please log in again.');
+        return;
+      }
+
+      console.log('Attempting to delete account...');
+
       const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/delete-account`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${await supabase.auth.getSession().then(({ data }) => data.session?.access_token)}`,
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json'
         }
       });
 
+      console.log('Delete account response status:', response.status);
+
       if (!response.ok) {
-        throw new Error('Failed to delete account');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Delete account error:', errorData);
+        throw new Error(errorData.error || 'Failed to delete account');
       }
+
+      const result = await response.json();
+      console.log('Account deletion successful:', result);
 
       // Logout and redirect
       await logout();
@@ -174,7 +188,7 @@ const Account = () => {
 
     } catch (err) {
       console.error('Error deleting account:', err);
-      setError('Failed to delete account. Please try again or contact support.');
+      setError(err.message || 'Failed to delete account. Please try again or contact support.');
     } finally {
       setDeleteLoading(false);
       setShowDeleteConfirm(false);

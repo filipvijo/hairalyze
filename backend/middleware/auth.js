@@ -6,26 +6,27 @@ const authenticateUser = async (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       console.log('Missing or invalid authorization header');
+
+      // Check if we're in development mode for fallback auth
+      const isProduction = process.env.NODE_ENV === 'production';
+      console.log('Environment:', process.env.NODE_ENV);
+
+      // Development fallback - check for X-User-ID header
+      if (!isProduction) {
+        const userIdHeader = req.headers['x-user-id'] || req.headers['X-User-ID'];
+        if (userIdHeader) {
+          console.log('Development mode: Using X-User-ID header');
+          req.user = { uid: userIdHeader, authProvider: 'supabase' };
+          console.log(`User authenticated with ID: ${userIdHeader} (development)`);
+          return next();
+        }
+      }
+
       return res.status(401).json({ error: 'No valid authorization token provided' });
     }
 
     const token = authHeader.split('Bearer ')[1];
     console.log('🔄 Supabase auth: Token received, length:', token.length);
-
-    // Check if we're in development mode for fallback auth
-    const isProduction = process.env.NODE_ENV === 'production';
-    console.log('Environment:', process.env.NODE_ENV);
-
-    // Development fallback - check for X-User-ID header
-    if (!isProduction) {
-      const userIdHeader = req.headers['x-user-id'] || req.headers['X-User-ID'];
-      if (userIdHeader) {
-        console.log('Development mode: Using X-User-ID header');
-        req.user = { uid: userIdHeader, authProvider: 'supabase' };
-        console.log(`User authenticated with ID: ${userIdHeader} (development)`);
-        return next();
-      }
-    }
 
     // Try Supabase authentication
     try {

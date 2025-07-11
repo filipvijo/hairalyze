@@ -1204,6 +1204,7 @@ const connectToMongo = async () => {
 
 // ------------------ NEW: connect once at startup ------------------
 (async () => {
+  console.log('🚀 Starting server initialization...');
   const ok = await connectToMongo();
   if (!ok) {
     console.error('❌  Could not connect to MongoDB on boot – exiting');
@@ -1239,9 +1240,11 @@ app.use(async (req, res, next) => {
 });
 
 // Always start the server (required for Render.com)
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 5000;
+console.log(`🔧 Attempting to start server on port ${PORT}...`);
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`🌐 Server accessible at http://localhost:${PORT}`);
 });
 
 // Export the Express app for Vercel
