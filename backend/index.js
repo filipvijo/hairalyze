@@ -6,10 +6,13 @@ const multer = require('multer');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const axios = require('axios');
 const { body, validationResult } = require('express-validator');
-// Import the Submission model from the models.js file
-const { Submission } = require('./models');
 
-// Firebase Admin SDK for token verification
+// Supabase integration
+const { supabase, testSupabaseConnection } = require('./supabase');
+const { authenticateUser, authenticateUserLegacy } = require('./middleware/auth');
+
+// Legacy imports (will be removed after migration)
+const { Submission } = require('./models');
 const admin = require('firebase-admin');
 
 dotenv.config();
@@ -32,62 +35,8 @@ try {
   console.warn('SECURITY: Firebase initialization failed');
 }
 
-// Authentication middleware with better error handling
-const authenticateUser = async (req, res, next) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('Missing or invalid authorization header');
-      return res.status(401).json({ error: 'No valid authorization token provided' });
-    }
-
-    const token = authHeader.split('Bearer ')[1];
-    console.log('Token received, length:', token.length);
-
-    // Check if we're in development mode or if Firebase Admin is not properly initialized
-    const isProduction = process.env.NODE_ENV === 'production';
-    const firebaseInitialized = admin.apps.length > 0;
-
-    console.log('Environment:', process.env.NODE_ENV);
-    console.log('Firebase initialized:', firebaseInitialized);
-
-    if (!isProduction || !firebaseInitialized) {
-      // Development mode or Firebase not initialized - use simplified approach
-      console.log('Using simplified authentication');
-      const userIdHeader = req.headers['x-user-id'] || req.headers['X-User-ID'];
-      if (!userIdHeader) {
-        console.log('Missing user ID header');
-        return res.status(401).json({ error: 'User ID header required' });
-      }
-      req.user = { uid: userIdHeader };
-      console.log('User authenticated with ID:', userIdHeader);
-      next();
-    } else {
-      // Production with Firebase Admin SDK
-      console.log('Using Firebase Admin SDK authentication');
-      try {
-        const decodedToken = await admin.auth().verifyIdToken(token);
-        req.user = decodedToken;
-        console.log('User authenticated via Firebase:', decodedToken.uid);
-        next();
-      } catch (firebaseError) {
-        console.error('Firebase token verification failed:', firebaseError.message);
-        // Fallback to simplified auth if Firebase fails
-        const userIdHeader = req.headers['x-user-id'] || req.headers['X-User-ID'];
-        if (userIdHeader) {
-          console.log('Falling back to simplified auth');
-          req.user = { uid: userIdHeader };
-          next();
-        } else {
-          return res.status(401).json({ error: 'Token verification failed and no user ID header provided' });
-        }
-      }
-    }
-  } catch (error) {
-    console.error('Authentication error:', error.message);
-    return res.status(401).json({ error: 'Authentication failed' });
-  }
-};
+// Note: Authentication middleware now imported from ./middleware/auth.js
+// Using new Supabase authentication by default, with legacy Firebase fallback
 
 // Middleware
 app.use(cors({
@@ -781,32 +730,42 @@ app.post(
       const parsedAnalysis = parseGrokAnalysis(hairAnalysis, userData);
       console.log("Analysis parsed successfully.");
 
-      console.log("Creating submission document...");
+      console.log("Creating submission document for Supabase...");
       try {
-        const submission = new Submission({
-          userId: req.user.uid, // Add the authenticated user's ID
-          hairProblem,
-          allergies,
-          medication,
-          dyed,
-          washFrequency,
-          additionalConcerns,
-          hairPhotos: hairPhotoUrls,
-          hairPhotoAnalysis: [hairAnalysis], // Store raw analysis in the array
-          productImages: productImageUrls,
-          productImageAnalysis, // Store individual product analyses
-          productNames: parsedProductNames,
-          analysis: parsedAnalysis, // Add the structured analysis
-        });
+        const submissionData = {
+          user_id: req.user.uid, // Authenticated user's ID
+          hair_problem: hairProblem || '',
+          allergies: allergies || '',
+          medication: medication || '',
+          dyed: dyed || '',
+          wash_frequency: washFrequency || '',
+          additional_concerns: additionalConcerns || '',
+          hair_photos: hairPhotoUrls,
+          hair_photo_analysis: [hairAnalysis], // Store raw analysis in array
+          product_images: productImageUrls,
+          product_image_analysis: productImageAnalysis,
+          product_names: parsedProductNames,
+          analysis: parsedAnalysis, // Structured analysis data
+          original_user_id: req.user.uid // For migration tracking
+        };
 
-        console.log("Attempting to save submission to MongoDB...");
-        const savedSubmission = await submission.save();   // use global timeouts
-        console.log("Submission saved successfully:", savedSubmission._id);
+        console.log("Attempting to save submission to Supabase...");
+        const { data: savedSubmission, error: saveError } = await supabase
+          .from('submissions')
+          .insert([submissionData])
+          .select()
+          .single();
 
-        // Return success response even if there are minor issues
+        if (saveError) {
+          throw new Error(`Supabase save error: ${saveError.message}`);
+        }
+
+        console.log("Submission saved successfully:", savedSubmission.id);
+
+        // Return success response
         return res.status(200).json({
           message: 'Submission saved successfully',
-          submissionId: savedSubmission._id,
+          submissionId: savedSubmission.id,
           hairAnalysis: parsedAnalysis.detailedAnalysis,
           metrics: parsedAnalysis.metrics,
           haircareRoutine: parsedAnalysis.haircareRoutine,
@@ -814,8 +773,8 @@ app.post(
           aiBonusTips: parsedAnalysis.aiBonusTips
         });
       } catch (dbError) {
-        console.error("Error saving submission to MongoDB:", dbError.message);
-        console.error("MongoDB Error Stack:", dbError.stack);
+        console.error("Error saving submission to Supabase:", dbError.message);
+        console.error("Database Error Stack:", dbError.stack);
 
         // Return a partial success response with the analysis data even if saving to DB failed
         return res.status(200).json({
@@ -825,7 +784,8 @@ app.post(
           metrics: parsedAnalysis.metrics,
           haircareRoutine: parsedAnalysis.haircareRoutine,
           productSuggestions: parsedAnalysis.productSuggestions,
-          aiBonusTips: parsedAnalysis.aiBonusTips
+          aiBonusTips: parsedAnalysis.aiBonusTips,
+          dbError: dbError.message // Include error details for debugging
         });
       }
     } catch (error) {
@@ -960,24 +920,78 @@ Please provide a helpful, personalized response based on their hair analysis:`;
   }
 });
 
-// Route to fetch submissions (only for authenticated user)
+// Route to fetch submissions (only for authenticated user) - SUPABASE VERSION
 app.get('/api/submissions', authenticateUser, async (req, res) => {
   try {
-    // For development: check if there are submissions without userId and assign them to current user
-    if (process.env.NODE_ENV === 'development') {
-      const submissionsWithoutUserId = await Submission.find({ userId: { $exists: false } });
-      if (submissionsWithoutUserId.length > 0) {
-        console.log(`Found ${submissionsWithoutUserId.length} submissions without userId, assigning to current user`);
-        await Submission.updateMany(
-          { userId: { $exists: false } },
-          { $set: { userId: req.user.uid } }
-        );
+    console.log('Fetching submissions for user:', req.user.uid);
+
+    // Handle submissions linking for both auth providers
+    console.log(`🔄 Checking submissions for user: ${req.user.uid} (${req.user.authProvider || 'unknown'})`);
+
+    // Check if there are submissions with null user_id that match this user
+    const { data: nullUserSubmissions, error: nullError } = await supabase
+      .from('submissions')
+      .select('id, original_user_id')
+      .is('user_id', null)
+      .eq('original_user_id', req.user.uid);
+
+    if (nullError) {
+      console.error('Error checking null user submissions:', nullError.message);
+    } else if (nullUserSubmissions && nullUserSubmissions.length > 0) {
+      console.log(`Found ${nullUserSubmissions.length} submissions with null user_id, linking to current user...`);
+
+      // Update submissions to assign current user
+      const { error: updateError } = await supabase
+        .from('submissions')
+        .update({ user_id: req.user.uid })
+        .is('user_id', null)
+        .eq('original_user_id', req.user.uid);
+
+      if (updateError) {
+        console.error('Error updating user_id:', updateError.message);
+      } else {
+        console.log(`✅ Successfully linked ${nullUserSubmissions.length} submissions to user`);
       }
     }
 
-    // Fetch only submissions for the authenticated user, sort by creation date descending
-    const submissions = await Submission.find({ userId: req.user.uid }).sort({ createdAt: -1 });
-    res.status(200).json(submissions);
+    // Fetch submissions for the authenticated user, sorted by creation date descending
+    console.log(`🔍 Querying Supabase for user: ${req.user.uid} (provider: ${req.user.authProvider})`);
+
+    let submissions, error;
+
+    if (req.user.authProvider === 'firebase') {
+      // Firebase users: query by original_user_id (TEXT field)
+      console.log('🔥 Querying by original_user_id for Firebase user');
+      const result = await supabase
+        .from('submissions')
+        .select('*')
+        .eq('original_user_id', req.user.uid)
+        .order('created_at', { ascending: false });
+      submissions = result.data;
+      error = result.error;
+    } else {
+      // Supabase users: query by user_id (UUID field)
+      console.log('🔵 Querying by user_id for Supabase user');
+      const result = await supabase
+        .from('submissions')
+        .select('*')
+        .eq('user_id', req.user.uid)
+        .order('created_at', { ascending: false });
+      submissions = result.data;
+      error = result.error;
+    }
+
+    console.log(`📊 Query result: ${submissions ? submissions.length : 0} submissions, error: ${error ? error.message : 'none'}`);
+
+    if (error) {
+      console.error('Supabase error fetching submissions:', error.message);
+      console.error('Full error details:', error);
+      return res.status(500).json({ error: 'Failed to fetch submissions from database', details: error.message });
+    }
+
+    console.log(`Successfully fetched ${submissions.length} submissions for user ${req.user.uid}`);
+    res.status(200).json(submissions || []);
+
   } catch (error) {
     console.error('Error fetching submissions:', error.message);
     res.status(500).json({ error: 'Failed to fetch submissions' });
@@ -989,15 +1003,52 @@ app.get('/', (req, res) => {
   res.status(200).json({ status: 'API is running', message: 'Welcome to Hairalyze API' });
 });
 
+// Test auth endpoint
+app.get('/test-auth', authenticateUser, (req, res) => {
+  res.status(200).json({
+    message: 'Authentication successful',
+    user: {
+      uid: req.user.uid,
+      authProvider: req.user.authProvider,
+      email: req.user.email
+    }
+  });
+});
+
 // Add a debug endpoint to check environment variables (without exposing secrets)
-app.get('/debug', (req, res) => {
+app.get('/debug', async (req, res) => {
+  // Test Supabase connection
+  let supabaseStatus = 'unknown';
+  let submissionCount = 0;
+  try {
+    const { count, error } = await supabase
+      .from('submissions')
+      .select('*', { count: 'exact', head: true });
+
+    if (error) {
+      supabaseStatus = `error: ${error.message}`;
+    } else {
+      supabaseStatus = 'connected';
+      submissionCount = count;
+    }
+  } catch (err) {
+    supabaseStatus = `exception: ${err.message}`;
+  }
+
   res.status(200).json({
     nodeEnv: process.env.NODE_ENV || 'not set',
+    // Legacy MongoDB status
     mongoConnected: !!mongoose.connection.readyState,
     mongoUri: process.env.MONGO_URI ? `${process.env.MONGO_URI.substring(0, 20)}...` : 'not set',
+    // Supabase status
+    supabaseStatus,
+    supabaseSubmissions: submissionCount,
+    supabaseUrl: process.env.SUPABASE_URL ? `${process.env.SUPABASE_URL.substring(0, 30)}...` : 'not set',
+    // Legacy Firebase status
     firebaseConfigured: !!(process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL),
     firebaseAppsLength: admin.apps.length,
     firebaseProjectId: process.env.FIREBASE_PROJECT_ID || 'not set',
+    // Other services
     xaiConfigured: !!process.env.XAI_API_KEY,
     awsConfigured: !!(process.env.AWS_REGION && process.env.AWS_S3_BUCKET),
     frontendUrl: process.env.FRONTEND_URL || 'not set',

@@ -1,0 +1,84 @@
+{
+  "totalSubmissions": 70,
+  "uniqueUsers": 17,
+  "userIds": [
+    "test-user",
+    "54apPY9Db0TnlDByRGoy9IIpAam2",
+    "Mwt30e8fyaOHjlXhNxHNcXNFixU2",
+    "lehBVnfuarWVdMIJ88nVSf2ivkh1",
+    "05bLGUqzlAfSrLAVAZue1ROJQt22",
+    "ErUjVjmSfAQsnKFo9bEsi0G2vWD3",
+    "K7gQo4BGfsOcDMyyQQShYFtXJxk2",
+    "fDHORJf7wBZnY4xuYmYzDMLdgOK2",
+    "WaT1Bh5LchdGlTDA0t2SDexNpKh2",
+    "sx58CEvQ4sUT2xburrcvVO2PNSg2",
+    "6VmEo270jvNpJtAdYgtswcYZaun1",
+    "i1h7rM4a0MajNkdtRgfGs8RtK8V2",
+    "Y8gxGtdlHFaqNFwbaZm52CPlVAG3",
+    "gcxUPQfXlrXNWtdfzjuWeVEOoVI2",
+    "pr9biAW6UvRRhsQ0lWTEsIs2UsK2",
+    "4yZNMRnga7PDDJJdeHcNGS3an9o1",
+    "ngFJ6mbf89ZDIwGvsfTc6T6Y3Rb2"
+  ],
+  "exportDate": "2025-07-11T10:24:29.987Z",
+  "sampleSubmission": {
+    "mongodb_id": "6806c96cff651567440a46ce",
+    "user_id": "test-user",
+    "hair_problem": "dandruff",
+    "allergies": "penicilin",
+    "medication": "diabetes medecine",
+    "dyed": "no",
+    "wash_frequency": "4 times a week",
+    "additional_concerns": "",
+    "hair_photos": [
+      "https://hairalyze-images-2025.s3.us-east-1.amazonaws.com/hair-photos/1745275241849-IMG_20250422_003014.jpg",
+      "https://hairalyze-images-2025.s3.us-east-1.amazonaws.com/hair-photos/1745275243874-IMG-20250422-WA0000.jpg",
+      "https://hairalyze-images-2025.s3.us-east-1.amazonaws.com/hair-photos/1745275244170-IMG-20250422-WA0001.jpg"
+    ],
+    "hair_photo_analysis": [],
+    "product_images": [],
+    "product_image_analysis": [],
+    "product_names": [
+      "nivea",
+      "l'oréal",
+      "fructis garnier"
+    ],
+    "analysis": {
+      "rawAnalysis": "",
+      "detailedAnalysis": "",
+      "metrics": {
+        "moisture": 0,
+        "strength": 0,
+        "elasticity": 0,
+        "scalpHealth": 0
+      },
+      "haircareRoutine": {
+        "cleansing": "",
+        "conditioning": "",
+        "treatments": "",
+        "styling": ""
+      },
+      "routineSchedule": {
+        "dailyRoutine": {
+          "morning": [],
+          "evening": []
+        },
+        "weeklyRoutine": {
+          "washDays": {
+            "frequency": "",
+            "steps": []
+          },
+          "treatments": {
+            "deepConditioning": "",
+            "scalpCare": "",
+            "specialTreatments": ""
+          }
+        }
+      },
+      "productSuggestions": [],
+      "aiBonusTips": []
+    },
+    "created_at": "2025-07-11T10:24:29.881Z",
+    "updated_at": "2025-06-17T08:45:01.897Z"
+  }
+}

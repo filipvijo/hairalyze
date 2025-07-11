@@ -1,0 +1,8 @@
+{
+  "totalProcessed": 70,
+  "successfulImports": 70,
+  "failedImports": 0,
+  "errors": [],
+  "importDate": "2025-07-11T10:47:32.047Z",
+  "userMappingNote": "User IDs set to null - need to be mapped after Supabase Auth migration"
+}
