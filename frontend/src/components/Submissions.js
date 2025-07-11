@@ -287,7 +287,7 @@ const Submissions = () => {
               <div className="mb-16 relative">
                 <div className="absolute -top-8 left-0 right-0 text-center">
                   <span className="inline-block px-4 py-1 bg-secondary text-neutral rounded-full text-sm font-medium">
-                    Latest Analysis from {new Date(latestAnalysis.timestamp).toLocaleDateString()}
+                    Latest Analysis from {latestAnalysis.timestamp ? new Date(latestAnalysis.timestamp).toLocaleDateString() : 'Unknown Date'}
                     {latestAnalysis.warning && (
                       <span className="ml-2 text-amber-600">⚠️ {latestAnalysis.warning}</span>
                     )}
@@ -487,7 +487,7 @@ const Submissions = () => {
                   <div className="bg-gradient-to-br from-info/5 to-primary/5 p-6 rounded-xl shadow-card mb-6 transform transition-all duration-300 hover:shadow-elevated hover:-translate-y-1 animate-fade-in border border-info/10">
                     <div className="flex justify-between items-center mb-4">
                       <h2 className="text-2xl font-bold bg-gradient-to-r from-info to-primary bg-clip-text text-transparent">Your Submission</h2>
-                      <span className="text-sm text-gray-500">{new Date(latestAnalysis.timestamp).toLocaleDateString()}</span>
+                      <span className="text-sm text-gray-500">{latestAnalysis.timestamp ? new Date(latestAnalysis.timestamp).toLocaleDateString() : 'Unknown Date'}</span>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -632,7 +632,7 @@ const Submissions = () => {
                   {index > 0 && (
                   <div className="absolute -top-8 left-0 right-0 text-center">
                     <span className="inline-block px-4 py-1 bg-secondary text-neutral rounded-full text-sm font-medium">
-                      Analysis from {new Date(submission.createdAt).toLocaleDateString()}
+                      Analysis from {submission.created_at ? new Date(submission.created_at).toLocaleDateString() : 'Unknown Date'}
                     </span>
                   </div>
                 )}
@@ -640,7 +640,7 @@ const Submissions = () => {
                 <div className="bg-gradient-to-br from-info/5 to-primary/5 p-6 rounded-xl shadow-card mb-6 transform transition-all duration-300 hover:shadow-elevated hover:-translate-y-1 animate-fade-in border border-info/10">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-bold bg-gradient-to-r from-info to-primary bg-clip-text text-transparent">Your Submission</h2>
-                    <span className="text-sm text-gray-500">{new Date(submission.createdAt).toLocaleDateString()}</span>
+                    <span className="text-sm text-gray-500">{submission.created_at ? new Date(submission.created_at).toLocaleDateString() : 'Unknown Date'}</span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
