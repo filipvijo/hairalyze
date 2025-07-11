@@ -995,6 +995,114 @@ app.get('/test-auth', authenticateUser, (req, res) => {
   });
 });
 
+// Get user account statistics
+app.get('/api/account-stats', authenticateUser, async (req, res) => {
+  try {
+    console.log('📊 Fetching account stats for user:', req.user.uid);
+
+    // Get user's submissions count and dates
+    const { data: submissions, error: submissionsError } = await supabase
+      .from('submissions')
+      .select('id, created_at')
+      .eq('user_id', req.user.uid)
+      .order('created_at', { ascending: false });
+
+    if (submissionsError) {
+      console.error('❌ Error fetching submissions:', submissionsError.message);
+      return res.status(500).json({
+        error: 'Failed to fetch account statistics',
+        details: submissionsError.message
+      });
+    }
+
+    // Calculate stats
+    const totalAnalyses = submissions?.length || 0;
+    const lastAnalysis = submissions && submissions.length > 0
+      ? submissions[0].created_at
+      : null;
+
+    // For now, set a default credit balance (you can implement actual credit system later)
+    const creditBalance = 10; // Default credits for new users
+
+    const stats = {
+      totalAnalyses,
+      lastAnalysis,
+      creditBalance,
+      joinDate: req.user.supabaseUser?.created_at || null
+    };
+
+    console.log('✅ Account stats retrieved successfully');
+
+    res.status(200).json({
+      message: 'Account statistics retrieved successfully',
+      stats
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching account stats:', error);
+    res.status(500).json({
+      error: 'Internal server error while fetching account statistics',
+      details: error.message
+    });
+  }
+});
+
+// Account deletion endpoint
+app.delete('/api/delete-account', authenticateUser, async (req, res) => {
+  try {
+    console.log('🗑️ Account deletion requested for user:', req.user.uid);
+
+    // First, delete all user's submissions from Supabase
+    const { error: submissionsError } = await supabase
+      .from('submissions')
+      .delete()
+      .eq('user_id', req.user.uid);
+
+    if (submissionsError) {
+      console.error('❌ Error deleting submissions:', submissionsError.message);
+      return res.status(500).json({
+        error: 'Failed to delete user data',
+        details: submissionsError.message
+      });
+    }
+
+    // Delete all user's conversations from Supabase
+    const { error: conversationsError } = await supabase
+      .from('conversations')
+      .delete()
+      .eq('user_id', req.user.uid);
+
+    if (conversationsError) {
+      console.error('❌ Error deleting conversations:', conversationsError.message);
+      // Continue with user deletion even if conversations fail
+    }
+
+    // Delete the user from Supabase Auth using admin API
+    const { error: userDeleteError } = await supabase.auth.admin.deleteUser(req.user.uid);
+
+    if (userDeleteError) {
+      console.error('❌ Error deleting user:', userDeleteError.message);
+      return res.status(500).json({
+        error: 'Failed to delete user account',
+        details: userDeleteError.message
+      });
+    }
+
+    console.log('✅ User account deleted successfully:', req.user.uid);
+
+    res.status(200).json({
+      message: 'Account deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ Error in account deletion:', error);
+    res.status(500).json({
+      error: 'Internal server error during account deletion',
+      details: error.message
+    });
+  }
+});
+
 // Add a debug endpoint to check environment variables (without exposing secrets)
 app.get('/debug', async (req, res) => {
   // Test Supabase connection
