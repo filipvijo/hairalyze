@@ -6,6 +6,7 @@ const Signup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false); // Add loading state
   const { signup } = useAuth();
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(''); // Clear previous errors
+    setSuccess(''); // Clear previous success messages
     setLoading(true); // Set loading state
 
     // Basic password validation (example)
@@ -24,18 +26,34 @@ const Signup = () => {
 
     try {
       console.log("Attempting signup with:", email);
-      await signup(email, password);
-      console.log("Signup successful, navigating to home.");
-      navigate('/'); // Navigate to home page after successful signup
+      const result = await signup(email, password);
+      console.log("Signup result:", result);
+
+      // Check if user was created successfully
+      if (result.user) {
+        if (result.session) {
+          // User is immediately logged in (email confirmation disabled)
+          console.log("Signup successful, user logged in, navigating to home.");
+          setSuccess('Account created successfully! Welcome to Hairalyze!');
+          setTimeout(() => navigate('/'), 1500); // Small delay to show success message
+        } else {
+          // User created but needs email confirmation
+          setSuccess('Account created! Please check your email and click the confirmation link to complete your registration.');
+        }
+      }
     } catch (err) {
       console.error("Signup failed:", err);
-      // Provide more specific error messages if possible
-      if (err.code === 'auth/email-already-in-use') {
-        setError('This email address is already in use.');
-      } else if (err.code === 'auth/invalid-email') {
+      // Handle specific error messages
+      if (err.message.includes('email confirmation')) {
+        setSuccess(err.message);
+      } else if (err.message.includes('already registered') || err.message.includes('already been registered')) {
+        setError('This email address is already registered. Please try logging in instead.');
+      } else if (err.message.includes('invalid email')) {
         setError('Please enter a valid email address.');
+      } else if (err.message.includes('weak password')) {
+        setError('Password is too weak. Please choose a stronger password.');
       } else {
-        setError('Failed to create an account. Please try again.');
+        setError(err.message || 'Failed to create an account. Please try again.');
       }
     } finally {
       setLoading(false); // Reset loading state
@@ -58,6 +76,11 @@ const Signup = () => {
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6 animate-fade-in">
             <p className="text-center">{error}</p>
+          </div>
+        )}
+        {success && (
+          <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg mb-6 animate-fade-in">
+            <p className="text-center">{success}</p>
           </div>
         )}
         <form onSubmit={handleSubmit}>

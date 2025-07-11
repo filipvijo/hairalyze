@@ -16,7 +16,10 @@ export const AuthProvider = ({ children }) => {
         email,
         password,
         options: {
-          emailRedirectTo: window.location.origin
+          emailRedirectTo: window.location.origin,
+          data: {
+            email_confirm: true // Skip email confirmation
+          }
         }
       });
 
@@ -26,6 +29,13 @@ export const AuthProvider = ({ children }) => {
       }
 
       console.log('✅ Supabase signup successful:', data);
+
+      // If user needs email confirmation, show appropriate message
+      if (data.user && !data.session) {
+        console.log('📧 Email confirmation required');
+        throw new Error('Please check your email and click the confirmation link to complete your registration.');
+      }
+
       return data;
     } catch (err) {
       console.error('❌ Signup exception:', err);
@@ -58,7 +68,7 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log('🔄 Logging out from Supabase...');
       const { error } = await supabase.auth.signOut();
-      
+
       if (error) {
         console.error('Supabase logout error:', error);
         throw error;
@@ -68,6 +78,26 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('❌ Logout exception:', error);
       throw error;
+    }
+  };
+
+  const updatePassword = async (newPassword) => {
+    try {
+      console.log('🔄 Updating password with Supabase...');
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        console.error('Supabase password update error:', error);
+        throw error;
+      }
+
+      console.log('✅ Password updated successfully');
+      return { success: true };
+    } catch (err) {
+      console.error('❌ Password update exception:', err);
+      throw err;
     }
   };
 
@@ -118,6 +148,7 @@ export const AuthProvider = ({ children }) => {
     signup,
     login,
     logout,
+    updatePassword,
   };
 
   return (

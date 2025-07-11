@@ -6,6 +6,7 @@ import Questionnaire from './components/Questionnaire';
 import Submissions from './components/Submissions';
 import Signup from './components/Signup'; // Import Signup
 import Login from './components/Login'; // Import Login
+import Account from './components/Account'; // Import Account
 import './App.css';
 
 // Debug environment variables
@@ -103,6 +104,12 @@ const Home = () => {
               View Results
             </button>
             <button
+              onClick={() => navigate('/account')}
+              className="px-4 py-2 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white font-medium hover:bg-opacity-30 transition-all duration-300 border border-white border-opacity-30"
+            >
+              My Account
+            </button>
+            <button
               onClick={handleLogout}
               className="px-4 py-2 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white font-medium hover:bg-opacity-30 transition-all duration-300 hover:text-accent"
             >
@@ -156,6 +163,15 @@ const Home = () => {
                   className="w-full px-4 py-3 text-left text-gray-800 hover:bg-gray-100 transition-colors duration-200 border-b border-gray-200"
                 >
                   📊 View Results
+                </button>
+                <button
+                  onClick={() => {
+                    navigate('/account');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full px-4 py-3 text-left text-gray-800 hover:bg-gray-100 transition-colors duration-200 border-b border-gray-200"
+                >
+                  👤 My Account
                 </button>
                 <button
                   onClick={() => {
@@ -266,6 +282,14 @@ function App() {
               element={
                 <PrivateRoute> {/* Protect Submissions */}
                   <Submissions />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/account"
+              element={
+                <PrivateRoute> {/* Protect Account */}
+                  <Account />
                 </PrivateRoute>
               }
             />

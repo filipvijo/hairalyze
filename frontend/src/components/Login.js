@@ -22,13 +22,19 @@ const Login = () => {
       navigate('/'); // Navigate to home page after successful login
     } catch (err) {
       console.error("Login failed:", err);
-      // Provide more specific error messages based on Firebase error codes
-      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-         setError('Invalid email or password. Please try again.');
-      } else if (err.code === 'auth/invalid-email') {
+      // Provide more specific error messages based on Supabase error messages
+      if (err.message.includes('Invalid login credentials') ||
+          err.message.includes('Email not confirmed') ||
+          err.message.includes('invalid_credentials')) {
+         setError('Invalid email or password. Please check your credentials and try again.');
+      } else if (err.message.includes('Email not confirmed')) {
+         setError('Please check your email and click the confirmation link before logging in.');
+      } else if (err.message.includes('invalid email')) {
          setError('Please enter a valid email address.');
+      } else if (err.message.includes('too many requests')) {
+         setError('Too many login attempts. Please wait a moment and try again.');
       } else {
-         setError('Failed to log in. Please try again later.');
+         setError(err.message || 'Failed to log in. Please try again later.');
       }
     } finally {
       setLoading(false); // Reset loading state
