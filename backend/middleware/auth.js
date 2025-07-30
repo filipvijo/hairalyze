@@ -26,7 +26,7 @@ const authenticateUser = async (req, res, next) => {
     }
 
     const token = authHeader.split('Bearer ')[1];
-    console.log('🔄 Supabase auth: Token received, length:', token.length);
+    console.log('🔄 Supabase auth: Token received, length:', token.length, 'for path:', req.path);
 
     // Try Supabase authentication
     try {

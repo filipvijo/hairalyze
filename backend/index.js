@@ -15,6 +15,16 @@ const { authenticateUser } = require('./middleware/auth');
 const { Submission } = require('./models');
 
 dotenv.config();
+
+// Debug Stripe key loading
+console.log('🔧 Stripe key check:', {
+  hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
+  keyPrefix: process.env.STRIPE_SECRET_KEY ? process.env.STRIPE_SECRET_KEY.substring(0, 10) + '...' : 'undefined'
+});
+
+// Initialize Stripe after environment variables are loaded
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 const app = express();
 
 // Note: Authentication middleware now imported from ./middleware/auth.js
@@ -554,6 +564,37 @@ const analyzeImageWithGrok = async (imageUrls, isHairAnalysis = true, userData =
   }
 };
 
+// Test endpoint to verify routing works
+app.get('/api/test-payment', (req, res) => {
+  res.json({ message: 'Payment endpoint routing works!' });
+});
+
+// Stripe payment intent endpoint
+app.post('/api/create-payment-intent', authenticateUser, async (req, res) => {
+  try {
+    console.log('💳 Creating payment intent for user:', req.user.uid);
+
+    // Create a PaymentIntent with the order amount and currency
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: 500, // $5.00 in cents
+      currency: 'usd',
+      metadata: {
+        userId: req.user.uid,
+        service: 'hair_analysis'
+      },
+    });
+
+    console.log('✅ Payment intent created:', paymentIntent.id);
+
+    res.send({
+      clientSecret: paymentIntent.client_secret,
+    });
+  } catch (error) {
+    console.error('❌ Error creating payment intent:', error);
+    res.status(500).json({ error: 'Failed to create payment intent' });
+  }
+});
+
 // Route to handle form submission with validation
 app.post(
   '/api/submit',
@@ -916,6 +957,363 @@ Please provide a helpful, personalized response based on their hair analysis:`;
   }
 });
 
+// Get all chat conversations for a user
+app.get('/api/chat/history', authenticateUser, async (req, res) => {
+  try {
+    console.log('📚 Loading all chat conversations for user:', req.user.uid);
+
+    const { data: conversations, error } = await supabase
+      .from('chat_conversations')
+      .select('*')
+      .eq('user_id', req.user.uid)
+      .order('updated_at', { ascending: false })
+      .limit(50);
+
+    if (error) {
+      throw new Error(`Error fetching conversations: ${error.message}`);
+    }
+
+    console.log(`✅ Found ${conversations?.length || 0} conversations for user`);
+
+    res.json({
+      success: true,
+      conversations: conversations || []
+    });
+  } catch (error) {
+    console.error('❌ Error loading chat history:', error);
+    res.status(500).json({
+      error: 'Failed to load chat history',
+      details: error.message
+    });
+  }
+});
+
+// Test endpoint for chat functionality
+app.get('/api/chat/test', (req, res) => {
+  console.log('🧪 Chat test endpoint called');
+  res.json({ message: 'Chat endpoints are working!', timestamp: new Date().toISOString() });
+});
+
+// Debug endpoint to test if chat routes are working
+app.get('/api/chat/debug/:id', (req, res) => {
+  console.log('🔧 Debug endpoint hit with ID:', req.params.id);
+  res.json({
+    message: 'Debug endpoint working!',
+    id: req.params.id,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Support ticket endpoints
+// Create a new support ticket
+app.post('/api/support/ticket', authenticateUser, async (req, res) => {
+  try {
+    const { subject, message, priority, userEmail } = req.body;
+
+    if (!subject || !message) {
+      return res.status(400).json({ error: 'Subject and message are required' });
+    }
+
+    console.log('🎫 Creating support ticket for user:', req.user.uid);
+
+    const { data: ticket, error } = await supabase
+      .from('support_tickets')
+      .insert({
+        user_id: req.user.uid,
+        user_email: userEmail || req.user.email,
+        subject,
+        message,
+        priority: priority || 'normal',
+        status: 'open'
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Error creating support ticket:', error);
+      return res.status(500).json({ error: 'Failed to create support ticket' });
+    }
+
+    console.log('✅ Support ticket created:', ticket.id);
+    res.json({
+      message: 'Support ticket created successfully',
+      ticketId: ticket.id
+    });
+
+  } catch (error) {
+    console.error('❌ Support ticket creation error:', error);
+    res.status(500).json({ error: 'Failed to create support ticket' });
+  }
+});
+
+// Get user's support tickets
+app.get('/api/support/tickets', authenticateUser, async (req, res) => {
+  try {
+    console.log('📋 Loading support tickets for user:', req.user.uid);
+
+    const { data: tickets, error } = await supabase
+      .from('support_tickets')
+      .select('*')
+      .eq('user_id', req.user.uid)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('❌ Error loading support tickets:', error);
+      return res.status(500).json({ error: 'Failed to load support tickets' });
+    }
+
+    console.log(`✅ Loaded ${tickets.length} support tickets`);
+    res.json({ tickets });
+
+  } catch (error) {
+    console.error('❌ Support tickets loading error:', error);
+    res.status(500).json({ error: 'Failed to load support tickets' });
+  }
+});
+
+// Admin endpoints for support tickets (you'll need to add admin authentication)
+// Get all support tickets (admin only)
+app.get('/api/admin/support-tickets', async (req, res) => {
+  try {
+    // TODO: Add admin authentication check here
+    // For now, we'll use a simple check - you should implement proper admin auth
+    const adminKey = req.headers['x-admin-key'];
+    if (adminKey !== process.env.ADMIN_KEY) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    console.log('👨‍💼 Admin loading all support tickets');
+
+    const { data: tickets, error } = await supabase
+      .from('support_tickets')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('❌ Error loading admin support tickets:', error);
+      return res.status(500).json({ error: 'Failed to load support tickets' });
+    }
+
+    console.log(`✅ Admin loaded ${tickets.length} support tickets`);
+    res.json({ tickets });
+
+  } catch (error) {
+    console.error('❌ Admin support tickets loading error:', error);
+    res.status(500).json({ error: 'Failed to load support tickets' });
+  }
+});
+
+// Update support ticket status (admin only)
+app.patch('/api/admin/support-tickets/:id/status', async (req, res) => {
+  try {
+    const adminKey = req.headers['x-admin-key'];
+    if (adminKey !== process.env.ADMIN_KEY) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!['open', 'in_progress', 'resolved', 'closed'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    console.log(`👨‍💼 Admin updating ticket ${id} status to: ${status}`);
+
+    const { data: ticket, error } = await supabase
+      .from('support_tickets')
+      .update({
+        status,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Error updating ticket status:', error);
+      return res.status(500).json({ error: 'Failed to update ticket status' });
+    }
+
+    console.log(`✅ Ticket ${id} status updated to: ${status}`);
+    res.json({ message: 'Ticket status updated successfully', ticket });
+
+  } catch (error) {
+    console.error('❌ Ticket status update error:', error);
+    res.status(500).json({ error: 'Failed to update ticket status' });
+  }
+});
+
+// Respond to support ticket (admin only)
+app.post('/api/admin/support-tickets/:id/respond', async (req, res) => {
+  try {
+    const adminKey = req.headers['x-admin-key'];
+    if (adminKey !== process.env.ADMIN_KEY) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { id } = req.params;
+    const { response } = req.body;
+
+    if (!response || !response.trim()) {
+      return res.status(400).json({ error: 'Response is required' });
+    }
+
+    console.log(`👨‍💼 Admin responding to ticket ${id}`);
+
+    const { data: ticket, error } = await supabase
+      .from('support_tickets')
+      .update({
+        admin_response: response,
+        admin_responded_at: new Date().toISOString(),
+        status: 'resolved',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Error responding to ticket:', error);
+      return res.status(500).json({ error: 'Failed to respond to ticket' });
+    }
+
+    console.log(`✅ Response sent to ticket ${id}`);
+    res.json({ message: 'Response sent successfully', ticket });
+
+  } catch (error) {
+    console.error('❌ Ticket response error:', error);
+    res.status(500).json({ error: 'Failed to send response' });
+  }
+});
+
+
+
+// Save chat conversation
+app.post('/api/chat/save', authenticateUser, async (req, res) => {
+  try {
+    const { submissionId, messages, title } = req.body;
+
+    if (!submissionId || !messages || !Array.isArray(messages)) {
+      return res.status(400).json({ error: 'Submission ID and messages array are required' });
+    }
+
+    console.log('💾 Saving chat conversation for user:', req.user.uid);
+
+    // Check if conversation already exists for this submission
+    const { data: existingConversation, error: fetchError } = await supabase
+      .from('chat_conversations')
+      .select('id')
+      .eq('user_id', req.user.uid)
+      .eq('submission_id', submissionId)
+      .single();
+
+    if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows found
+      throw new Error(`Error checking existing conversation: ${fetchError.message}`);
+    }
+
+    const conversationData = {
+      user_id: req.user.uid,
+      submission_id: submissionId,
+      title: title || 'Hair Analysis Chat',
+      messages: messages,
+      last_message_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    let savedConversation;
+
+    if (existingConversation) {
+      // Update existing conversation
+      const { data, error } = await supabase
+        .from('chat_conversations')
+        .update(conversationData)
+        .eq('id', existingConversation.id)
+        .select()
+        .single();
+
+      if (error) throw new Error(`Error updating conversation: ${error.message}`);
+      savedConversation = data;
+      console.log('✅ Updated existing conversation:', existingConversation.id);
+    } else {
+      // Create new conversation
+      const { data, error } = await supabase
+        .from('chat_conversations')
+        .insert([conversationData])
+        .select()
+        .single();
+
+      if (error) throw new Error(`Error creating conversation: ${error.message}`);
+      savedConversation = data;
+      console.log('✅ Created new conversation:', savedConversation.id);
+    }
+
+    res.status(200).json({
+      success: true,
+      conversationId: savedConversation.id,
+      message: 'Chat conversation saved successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ Error saving chat conversation:', error);
+    res.status(500).json({
+      error: 'Failed to save chat conversation',
+      details: error.message
+    });
+  }
+});
+
+// Get chat conversation for a submission
+app.get('/api/chat/:submissionId', authenticateUser, async (req, res) => {
+  try {
+    const { submissionId } = req.params;
+
+    console.log('🔍 GET /api/chat/:submissionId endpoint hit!');
+    console.log('📖 Loading chat conversation for submission:', submissionId);
+    console.log('👤 User:', req.user?.uid);
+
+    const { data: conversation, error } = await supabase
+      .from('chat_conversations')
+      .select('*')
+      .eq('user_id', req.user.uid)
+      .eq('submission_id', submissionId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+      throw new Error(`Error fetching conversation: ${error.message}`);
+    }
+
+    if (!conversation) {
+      // No existing conversation found
+      return res.status(200).json({
+        success: true,
+        conversation: null,
+        messages: []
+      });
+    }
+
+    console.log('✅ Found conversation with', conversation.messages.length, 'messages');
+
+    res.status(200).json({
+      success: true,
+      conversation: {
+        id: conversation.id,
+        title: conversation.title,
+        lastMessageAt: conversation.last_message_at,
+        createdAt: conversation.created_at
+      },
+      messages: conversation.messages || []
+    });
+
+  } catch (error) {
+    console.error('❌ Error loading chat conversation:', error);
+    res.status(500).json({
+      error: 'Failed to load chat conversation',
+      details: error.message
+    });
+  }
+});
+
 // Route to fetch submissions (only for authenticated user) - SUPABASE VERSION
 app.get('/api/submissions', authenticateUser, async (req, res) => {
   try {
@@ -1021,13 +1419,9 @@ app.get('/api/account-stats', authenticateUser, async (req, res) => {
       ? submissions[0].created_at
       : null;
 
-    // For now, set a default credit balance (you can implement actual credit system later)
-    const creditBalance = 10; // Default credits for new users
-
     const stats = {
       totalAnalyses,
       lastAnalysis,
-      creditBalance,
       joinDate: req.user.supabaseUser?.created_at || null
     };
 

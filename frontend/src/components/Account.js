@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabase';
 import { useNavigate } from 'react-router-dom';
+import SupportModal from './SupportModal';
 
 const Account = () => {
   const { currentUser, logout, updatePassword } = useAuth();
@@ -11,8 +12,7 @@ const Account = () => {
   const [userStats, setUserStats] = useState({
     totalAnalyses: 0,
     joinDate: '',
-    lastAnalysis: '',
-    creditBalance: 0
+    lastAnalysis: ''
   });
   
   // State for password change
@@ -29,6 +29,7 @@ const Account = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
 
   // Fetch user stats on component mount
   useEffect(() => {
@@ -87,13 +88,11 @@ const Account = () => {
       const lastAnalysis = stats.lastAnalysis
         ? new Date(stats.lastAnalysis).toLocaleDateString()
         : 'No analyses yet';
-      const creditBalance = stats.creditBalance || 0;
 
       setUserStats({
         totalAnalyses,
         joinDate,
-        lastAnalysis,
-        creditBalance
+        lastAnalysis
       });
 
     } catch (err) {
@@ -104,8 +103,7 @@ const Account = () => {
       setUserStats({
         totalAnalyses: 0,
         joinDate: 'January 2024',
-        lastAnalysis: 'No analyses yet',
-        creditBalance: 0
+        lastAnalysis: 'No analyses yet'
       });
     } finally {
       setLoading(false);
@@ -271,21 +269,60 @@ const Account = () => {
               </div>
             </div>
 
-            {/* Statistics Section */}
+            {/* Account Overview */}
             <div className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">Account Statistics</h2>
-              <div className="grid md:grid-cols-3 gap-6">
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">Account Overview</h2>
+              <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 text-center">
                   <div className="text-3xl font-bold text-blue-600 mb-2">{userStats.totalAnalyses}</div>
-                  <p className="text-blue-800 font-medium">Total Analyses</p>
-                </div>
-                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 text-center">
-                  <div className="text-3xl font-bold text-green-600 mb-2">{userStats.creditBalance}</div>
-                  <p className="text-green-800 font-medium">Credits Remaining</p>
+                  <p className="text-blue-800 font-medium">Hair Analyses Completed</p>
+                  <p className="text-sm text-blue-600 mt-2">Each analysis costs $5</p>
                 </div>
                 <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 text-center">
-                  <div className="text-sm font-bold text-purple-600 mb-2">{userStats.lastAnalysis}</div>
+                  <div className="text-lg font-bold text-purple-600 mb-2">{userStats.lastAnalysis}</div>
                   <p className="text-purple-800 font-medium">Last Analysis</p>
+                  <p className="text-sm text-purple-600 mt-2">Ready for another analysis?</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="mb-8">
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">Quick Actions</h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                <button
+                  onClick={() => navigate('/questionnaire')}
+                  className="bg-gradient-to-r from-primary to-accent text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+                >
+                  🔬 Start New Hair Analysis ($5)
+                </button>
+                <button
+                  onClick={() => navigate('/submissions')}
+                  className="bg-gradient-to-r from-purple-500 to-blue-500 text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+                >
+                  📊 View My Results
+                </button>
+              </div>
+            </div>
+
+            {/* Account Information */}
+            <div className="mb-8">
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">Account Information</h2>
+              <div className="bg-gray-50 rounded-lg p-6">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <p className="text-gray-900 bg-white p-3 rounded border">{currentUser?.email}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Member Since</label>
+                    <p className="text-gray-900 bg-white p-3 rounded border">{userStats.joinDate}</p>
+                  </div>
+                </div>
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-sm text-blue-800">
+                    <strong>💡 How it works:</strong> Each hair analysis costs $5. You pay only when you want a new analysis - no subscriptions or credits needed!
+                  </p>
                 </div>
               </div>
             </div>
@@ -382,7 +419,7 @@ const Account = () => {
             {/* Contact Support Section */}
             <div className="mt-8 text-center">
               <button
-                onClick={() => window.open('mailto:support@hairalyze.com', '_blank')}
+                onClick={() => setShowSupportModal(true)}
                 className="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-200"
               >
                 📧 Contact Support
@@ -394,6 +431,12 @@ const Account = () => {
           </div>
         </div>
       </div>
+
+      {/* Support Modal */}
+      <SupportModal
+        isOpen={showSupportModal}
+        onClose={() => setShowSupportModal(false)}
+      />
     </div>
   );
 };

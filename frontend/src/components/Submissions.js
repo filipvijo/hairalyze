@@ -28,6 +28,23 @@ const Submissions = () => {
     setIsMobileMenuOpen(false);
   };
 
+  const handleGoToHistory = () => {
+    navigate('/history');
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleGoToAccount = () => {
+    navigate('/account');
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleGoToFAQ = () => {
+    navigate('/faq');
+    setIsMobileMenuOpen(false);
+  };
+
+
+
   // Close mobile menu when clicking outside
   React.useEffect(() => {
     const handleClickOutside = (event) => {
@@ -210,8 +227,17 @@ const Submissions = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-secondary to-light py-10 relative">
-      {/* Desktop Navigation */}
-      <div className="absolute top-6 right-6 hidden md:flex items-center space-x-4 z-50">
+      {/* Desktop Navigation - Left Side */}
+      <div className="absolute top-6 left-6 hidden md:flex items-center space-x-3 z-50">
+        <button
+          onClick={handleGoToAccount}
+          className="flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-green-500 to-teal-500 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+          </svg>
+          Account
+        </button>
         <button
           onClick={handleBackToHomepage}
           className="flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-primary to-accent text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
@@ -219,7 +245,20 @@ const Submissions = () => {
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
             <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
           </svg>
-          Back to Homepage
+          Homepage
+        </button>
+      </div>
+
+      {/* Desktop Navigation - Right Side */}
+      <div className="absolute top-6 right-6 hidden md:flex items-center space-x-3 z-50">
+        <button
+          onClick={handleGoToHistory}
+          className="flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+          </svg>
+          History
         </button>
       </div>
 
@@ -249,6 +288,34 @@ const Submissions = () => {
                 <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
               </svg>
               Back to Homepage
+            </button>
+
+            <button
+              onClick={handleGoToHistory}
+              className="w-full px-4 py-3 text-left text-gray-800 hover:bg-gray-100 transition-colors duration-200 flex items-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+              </svg>
+              Chat History
+            </button>
+            <button
+              onClick={handleGoToAccount}
+              className="w-full px-4 py-3 text-left text-gray-800 hover:bg-gray-100 transition-colors duration-200 flex items-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+              </svg>
+              Account
+            </button>
+            <button
+              onClick={handleGoToFAQ}
+              className="w-full px-4 py-3 text-left text-gray-800 hover:bg-gray-100 transition-colors duration-200 flex items-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+              </svg>
+              FAQ
             </button>
           </div>
         )}

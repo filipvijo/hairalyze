@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 // Add useNavigate to the import
 import { BrowserRouter as Router, Route, Routes, Link, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext'; // Import AuthProvider and useAuth
@@ -7,6 +7,11 @@ import Submissions from './components/Submissions';
 import Signup from './components/Signup'; // Import Signup
 import Login from './components/Login'; // Import Login
 import Account from './components/Account'; // Import Account
+import PaymentModal from './components/PaymentModal'; // Import PaymentModal
+import WhatYouGet from './components/WhatYouGet'; // Import WhatYouGet
+import History from './components/History'; // Import History
+import FAQ from './components/FAQ'; // Import FAQ
+import AdminSupport from './components/AdminSupport'; // Import AdminSupport
 import './App.css';
 
 // Debug environment variables
@@ -35,6 +40,7 @@ const Home = () => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate(); // Use navigate for logout redirect
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = React.useState(false);
   const mobileMenuRef = React.useRef(null);
 
   const handleLogout = async () => {
@@ -64,6 +70,20 @@ const Home = () => {
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleStartAnalysis = () => {
+    setIsPaymentModalOpen(true);
+  };
+
+  const handlePaymentSuccess = (paymentIntent) => {
+    console.log('Payment successful:', paymentIntent);
+    setIsPaymentModalOpen(false);
+    navigate('/questionnaire');
+  };
+
+  const handlePaymentCancel = () => {
+    setIsPaymentModalOpen(false);
   };
 
   // Close mobile menu when clicking outside
@@ -218,11 +238,23 @@ const Home = () => {
         {/* Conditional content based on login status */}
         {currentUser ? (
           <div className="text-center">
-            <Link to="/questionnaire">
-              <button className="px-8 py-4 rounded-full bg-gradient-to-r from-accent to-primary text-white font-semibold text-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105">
-                Start Hair Analysis
-              </button>
-            </Link>
+            <button
+              onClick={handleStartAnalysis}
+              className="px-8 py-4 rounded-full bg-gradient-to-r from-accent to-primary text-white font-semibold text-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+            >
+              Start Hair Analysis - $5.00
+            </button>
+
+            {/* What You Get button */}
+            <div className="mt-4">
+              <Link
+                to="/what-you-get"
+                className="inline-block px-6 py-3 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white font-medium hover:bg-opacity-30 transition-all duration-300 border border-white border-opacity-30"
+              >
+                💎 What You Get for $5
+              </Link>
+            </div>
+
             <div className="mt-12 p-8 bg-black bg-opacity-30 backdrop-filter backdrop-blur-sm rounded-2xl border border-white border-opacity-20">
               <h3 className="text-xl font-semibold text-white mb-4">How It Works</h3>
               <div className="grid md:grid-cols-3 gap-6 text-left">
@@ -242,6 +274,19 @@ const Home = () => {
                   <p className="text-sm text-gray-600">Receive personalized hair care advice, product suggestions, and styling tips</p>
                 </div>
               </div>
+
+              {/* FAQ Button */}
+              <div className="mt-6 text-center">
+                <Link
+                  to="/faq"
+                  className="inline-flex items-center px-6 py-3 bg-white bg-opacity-20 text-white font-medium rounded-full hover:bg-opacity-30 transition-all duration-300 transform hover:scale-105 backdrop-blur-sm border border-white border-opacity-30"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                  </svg>
+                  Frequently Asked Questions
+                </Link>
+              </div>
             </div>
           </div>
         ) : (
@@ -257,9 +302,26 @@ const Home = () => {
                 Sign Up
               </Link>
             </div>
+
+            {/* What You Get button for non-logged-in users */}
+            <div className="mt-6">
+              <Link
+                to="/what-you-get"
+                className="inline-block px-6 py-3 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white font-medium hover:bg-opacity-30 transition-all duration-300 border border-white border-opacity-30"
+              >
+                💎 What You Get for $5
+              </Link>
+            </div>
           </div>
         )}
       </div>
+
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={handlePaymentCancel}
+        onSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 };
@@ -273,6 +335,7 @@ function App() {
           {/* Removed the old nav bar */}
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/what-you-get" element={<WhatYouGet />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login />} />
             <Route
@@ -299,6 +362,23 @@ function App() {
                 </PrivateRoute>
               }
             />
+            <Route
+              path="/history"
+              element={
+                <PrivateRoute> {/* Protect History */}
+                  <History />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/faq"
+              element={<FAQ />}
+            />
+            <Route
+              path="/admin/support"
+              element={<AdminSupport />}
+            />
+
             {/* Add a catch-all route or redirect for unknown paths */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
