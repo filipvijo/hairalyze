@@ -20,7 +20,8 @@ const AdminSupport = () => {
       console.log('👨‍💼 Loading all support tickets...');
 
       // Use backend API with admin key
-      const response = await fetch('/api/admin/support-tickets', {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${apiUrl}/api/admin/support-tickets`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -47,7 +48,8 @@ const AdminSupport = () => {
     try {
       console.log(`👨‍💼 Updating ticket ${ticketId} status to: ${status}`);
 
-      const response = await fetch(`/api/admin/support-tickets/${ticketId}/status`, {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${apiUrl}/api/admin/support-tickets/${ticketId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -75,7 +77,8 @@ const AdminSupport = () => {
     try {
       console.log(`👨‍💼 Responding to ticket ${ticketId}`);
 
-      const apiResponse = await fetch(`/api/admin/support-tickets/${ticketId}/respond`, {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const apiResponse = await fetch(`${apiUrl}/api/admin/support-tickets/${ticketId}/respond`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
