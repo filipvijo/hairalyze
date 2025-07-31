@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import './AdminSupport.css';
 
-// Force rebuild - Admin Support Page
+// Force rebuild - Admin Support Page - Fix backend URL
 
 const AdminSupport = () => {
   const [tickets, setTickets] = useState([]);
@@ -21,6 +21,11 @@ const AdminSupport = () => {
 
       // Use backend API with admin key
       const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      console.log('🔧 Admin Support - API URL being used:', apiUrl);
+      console.log('🔧 Admin Support - Environment check:', {
+        REACT_APP_API_URL: process.env.REACT_APP_API_URL,
+        NODE_ENV: process.env.NODE_ENV
+      });
       const response = await fetch(`${apiUrl}/api/admin/support-tickets`, {
         method: 'GET',
         headers: {
