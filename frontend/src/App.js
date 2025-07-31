@@ -232,7 +232,7 @@ const Home = () => {
       </div>
 
       <div className="relative z-10 text-center max-w-4xl px-8 py-16 animate-fade-in mx-4">
-        <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent drop-shadow-lg">Hairalyze</h1>
+        <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent drop-shadow-lg">Hairalyzer</h1>
         <p className="text-xl text-white mb-10 max-w-2xl mx-auto leading-relaxed">Your personalized AI-powered hair analysis and care recommendation system</p>
 
         {/* Conditional content based on login status */}
@@ -242,7 +242,8 @@ const Home = () => {
               onClick={handleStartAnalysis}
               className="px-8 py-4 rounded-full bg-gradient-to-r from-accent to-primary text-white font-semibold text-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105"
             >
-              Start Hair Analysis - $9.99
+              <span className="mr-2">Start Hair Analysis</span>
+              <span className="text-2xl font-bold">$9.99</span>
             </button>
 
             {/* What You Get button */}

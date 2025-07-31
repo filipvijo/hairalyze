@@ -111,7 +111,7 @@ const FAQ = () => {
       {/* Header */}
       <div className="faq-header">
         <h1>❓ Frequently Asked Questions</h1>
-        <p>Everything you need to know about Hairalyze and hair care</p>
+        <p>Everything you need to know about Hairalyzer and hair care</p>
         <button 
           onClick={() => navigate('/')}
           className="back-home-button"

@@ -139,7 +139,8 @@ const WhatYouGet = () => {
                 to="/"
                 className="inline-block px-8 py-4 rounded-full bg-gradient-to-r from-accent to-primary text-white font-semibold text-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105"
               >
-                Start Your Analysis Now - $5
+                <span className="mr-2">Start Your Analysis Now</span>
+                <span className="text-xl font-bold">$9.99</span>
               </Link>
             ) : (
               <div className="space-y-4">

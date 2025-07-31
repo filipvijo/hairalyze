@@ -276,7 +276,7 @@ const Account = () => {
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 text-center">
                   <div className="text-3xl font-bold text-blue-600 mb-2">{userStats.totalAnalyses}</div>
                   <p className="text-blue-800 font-medium">Hair Analyses Completed</p>
-                  <p className="text-sm text-blue-600 mt-2">Each analysis costs $5</p>
+                  <p className="text-sm text-blue-600 mt-2">Each analysis costs $9.99</p>
                 </div>
                 <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 text-center">
                   <div className="text-lg font-bold text-purple-600 mb-2">{userStats.lastAnalysis}</div>
@@ -294,7 +294,7 @@ const Account = () => {
                   onClick={() => navigate('/questionnaire')}
                   className="bg-gradient-to-r from-primary to-accent text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105"
                 >
-                  🔬 Start New Hair Analysis ($5)
+                  🔬 Start New Hair Analysis ($9.99)
                 </button>
                 <button
                   onClick={() => navigate('/submissions')}

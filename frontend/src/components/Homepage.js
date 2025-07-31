@@ -6,13 +6,13 @@ function Homepage() {
 
   return (
     <header className="header">
-      <h1>Hairalyze</h1>
+      <h1>Hairalyzer</h1>
       <p>Your personalized hair care solution</p>
       <button
         className="hairalyze-btn"
         onClick={() => navigate('/questionnaire')}
       >
-        Hairalyze my Hair
+        Analyze my Hair
       </button>
     </header>
   );
