@@ -11,5 +11,3 @@ services:
         value: production
       - key: PORT
         value: 10000
-      - key: ADMIN_KEY
-        value: hairalyzer_admin_2025_secure_key
