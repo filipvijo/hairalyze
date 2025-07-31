@@ -4,10 +4,12 @@ services:
     env: node
     rootDir: backend
     buildCommand: npm install
-    startCommand: node debug.js && node index.js
+    startCommand: node index.js
     nodeVersion: 18.x
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
+      - key: ADMIN_KEY
+        value: hairalyzer_admin_2025_secure_key
