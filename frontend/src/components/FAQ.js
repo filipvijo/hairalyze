@@ -24,7 +24,7 @@ const FAQ = () => {
         },
         {
           question: "How much does it cost?",
-          answer: "Each hair analysis costs $5. This one-time payment gives you access to comprehensive personalized recommendations, product suggestions, styling tips, and ongoing AI chat support for your specific analysis."
+          answer: "Each hair analysis costs $9.99. This one-time payment gives you access to comprehensive personalized recommendations, product suggestions, styling tips, and ongoing AI chat support for your specific analysis."
         }
       ]
     },
