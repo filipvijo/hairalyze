@@ -94,7 +94,7 @@ const WhatYouGet = () => {
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
-            What You Get for Just $5
+            What You Get for Just $9.99
           </h1>
           <p className="text-xl text-white mb-8 max-w-3xl mx-auto leading-relaxed">
             Professional-grade hair analysis and personalized recommendations that would cost hundreds at a salon
@@ -104,8 +104,8 @@ const WhatYouGet = () => {
           <div className="bg-white bg-opacity-10 backdrop-filter backdrop-blur-sm rounded-2xl p-8 max-w-md mx-auto border border-white border-opacity-20">
             <div className="text-gray-300 text-lg mb-2">Total Value:</div>
             <div className="text-4xl font-bold text-white line-through opacity-75">${totalValue}</div>
-            <div className="text-green-400 text-2xl font-semibold mt-2">Your Price: Only $5</div>
-            <div className="text-green-300 text-lg mt-1">Save ${totalValue - 5}!</div>
+            <div className="text-green-400 text-2xl font-semibold mt-2">Your Price: Only $9.99</div>
+            <div className="text-green-300 text-lg mt-1">Save ${(totalValue - 9.99).toFixed(2)}!</div>
           </div>
         </div>
 

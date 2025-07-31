@@ -48,7 +48,7 @@ const CheckoutForm = ({ onSuccess, onCancel, isLoading, setIsLoading }) => {
       });
 
       // Create payment intent
-      const fullUrl = 'http://localhost:5000/api/create-payment-intent';
+      const fullUrl = `${process.env.REACT_APP_API_URL}/api/create-payment-intent`;
       const response = await fetch(fullUrl, {
         method: 'POST',
         headers: {
@@ -132,7 +132,7 @@ const CheckoutForm = ({ onSuccess, onCancel, isLoading, setIsLoading }) => {
           disabled={!stripe || isLoading}
           className="flex-1 px-6 py-3 bg-gradient-to-r from-accent to-primary text-white rounded-lg hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isLoading ? 'Processing...' : 'Pay $5.00'}
+          {isLoading ? 'Processing...' : 'Pay $9.99'}
         </button>
       </div>
     </form>
@@ -160,7 +160,7 @@ const PaymentModal = ({ isOpen, onClose, onSuccess }) => {
             Secure payment for your personalized hair analysis
           </p>
           <div className="mt-4 p-4 bg-gradient-to-r from-accent/10 to-primary/10 rounded-lg">
-            <div className="text-3xl font-bold text-primary">$5.00</div>
+            <div className="text-3xl font-bold text-primary">$9.99</div>
             <div className="text-sm text-gray-600">One-time payment</div>
           </div>
         </div>

@@ -33,6 +33,8 @@ const app = express();
 // Middleware
 app.use(cors({
   origin: [
+    'https://www.hairalyzer.com',
+    'https://hairalyzer.com',
     'https://hairalyze.vercel.app',
     'http://localhost:3000',
     process.env.FRONTEND_URL
@@ -576,7 +578,7 @@ app.post('/api/create-payment-intent', authenticateUser, async (req, res) => {
 
     // Create a PaymentIntent with the order amount and currency
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: 500, // $5.00 in cents
+      amount: 999, // $9.99 in cents
       currency: 'usd',
       metadata: {
         userId: req.user.uid,

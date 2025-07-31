@@ -242,7 +242,7 @@ const Home = () => {
               onClick={handleStartAnalysis}
               className="px-8 py-4 rounded-full bg-gradient-to-r from-accent to-primary text-white font-semibold text-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105"
             >
-              Start Hair Analysis - $5.00
+              Start Hair Analysis - $9.99
             </button>
 
             {/* What You Get button */}
@@ -251,7 +251,7 @@ const Home = () => {
                 to="/what-you-get"
                 className="inline-block px-6 py-3 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white font-medium hover:bg-opacity-30 transition-all duration-300 border border-white border-opacity-30"
               >
-                💎 What You Get for $5
+                💎 What You Get for $9.99
               </Link>
             </div>
 
@@ -309,7 +309,7 @@ const Home = () => {
                 to="/what-you-get"
                 className="inline-block px-6 py-3 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white font-medium hover:bg-opacity-30 transition-all duration-300 border border-white border-opacity-30"
               >
-                💎 What You Get for $5
+                💎 What You Get for $9.99
               </Link>
             </div>
           </div>
