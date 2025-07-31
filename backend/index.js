@@ -40,7 +40,7 @@ app.use(cors({
     process.env.FRONTEND_URL
   ].filter(Boolean), // Remove any undefined values
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-User-ID'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-User-ID', 'x-admin-key'],
   credentials: true // Allow credentials (cookies, authorization headers)
 }));
 app.use(express.json({ limit: '50mb' }));
