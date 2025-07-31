@@ -321,7 +321,7 @@ const Account = () => {
                 </div>
                 <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
                   <p className="text-sm text-blue-800">
-                    <strong>💡 How it works:</strong> Each hair analysis costs $5. You pay only when you want a new analysis - no subscriptions or credits needed!
+                    <strong>💡 How it works:</strong> Each hair analysis costs $9.99. You pay only when you want a new analysis - no subscriptions or credits needed!
                   </p>
                 </div>
               </div>
