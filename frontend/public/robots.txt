@@ -1,3 +1,24 @@
 # https://www.robotstxt.org/robotstxt.html
+# Hairalyzer - AI Hair Analysis Platform
+
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /account
+Disallow: /submissions
+Disallow: /questionnaire
+Disallow: /history
+
+# Allow important public pages
+Allow: /
+Allow: /what-you-get
+Allow: /signup
+Allow: /login
+Allow: /faq
+
+# Sitemap location
+Sitemap: https://www.hairalyzer.com/sitemap.xml
+
+# Crawl delay (optional - helps prevent server overload)
+Crawl-delay: 1

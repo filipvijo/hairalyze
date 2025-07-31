@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 // Add useNavigate to the import
-import { BrowserRouter as Router, Route, Routes, Link, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext'; // Import AuthProvider and useAuth
 import Questionnaire from './components/Questionnaire';
 import Submissions from './components/Submissions';
@@ -12,6 +12,8 @@ import WhatYouGet from './components/WhatYouGet'; // Import WhatYouGet
 import History from './components/History'; // Import History
 import FAQ from './components/FAQ'; // Import FAQ
 import AdminSupport from './components/AdminSupport'; // Import AdminSupport
+import AnalyticsTest from './components/AnalyticsTest'; // Import Analytics Test (dev only)
+import { initializeAnalytics, trackPageView, trackCTAClick, trackNavigation, trackAnalysisStart, trackPaymentComplete } from './utils/analytics'; // Import analytics
 import './App.css';
 
 // Debug environment variables
@@ -35,6 +37,18 @@ const PrivateRoute = ({ children }) => {
   return currentUser ? children : <Navigate to="/login" />;
 };
 
+// Analytics tracking component for page views
+const AnalyticsTracker = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Track page views on route changes
+    trackPageView(document.title, window.location.href);
+  }, [location]);
+
+  return null;
+};
+
 // Updated Home component with auth state and logout
 const Home = () => {
   const { currentUser, logout } = useAuth();
@@ -42,6 +56,11 @@ const Home = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = React.useState(false);
   const mobileMenuRef = React.useRef(null);
+
+  // Initialize analytics on component mount
+  useEffect(() => {
+    initializeAnalytics();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -73,11 +92,14 @@ const Home = () => {
   };
 
   const handleStartAnalysis = () => {
+    trackCTAClick('start_hair_analysis', 'homepage');
+    trackAnalysisStart();
     setIsPaymentModalOpen(true);
   };
 
   const handlePaymentSuccess = (paymentIntent) => {
     console.log('Payment successful:', paymentIntent);
+    trackPaymentComplete('stripe', 9.99);
     setIsPaymentModalOpen(false);
     navigate('/questionnaire');
   };
@@ -296,10 +318,18 @@ const Home = () => {
               <p className="text-lg text-white mb-0">Unlock personalized hair care recommendations powered by advanced AI analysis</p>
             </div>
             <div className="flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-6">
-              <Link to="/login" className="px-8 py-4 rounded-full bg-white border border-accent text-accent font-medium hover:bg-accent hover:text-white transition-all duration-300 shadow-soft">
+              <Link
+                to="/login"
+                onClick={() => trackNavigation('login', 'homepage')}
+                className="px-8 py-4 rounded-full bg-white border border-accent text-accent font-medium hover:bg-accent hover:text-white transition-all duration-300 shadow-soft"
+              >
                 Log In
               </Link>
-              <Link to="/signup" className="px-8 py-4 rounded-full bg-gradient-to-r from-accent to-primary text-white font-medium hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+              <Link
+                to="/signup"
+                onClick={() => trackNavigation('signup', 'homepage')}
+                className="px-8 py-4 rounded-full bg-gradient-to-r from-accent to-primary text-white font-medium hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+              >
                 Sign Up
               </Link>
             </div>
@@ -333,6 +363,7 @@ function App() {
     return (
       <AuthProvider> {/* Wrap the entire app with AuthProvider */}
         <Router>
+          <AnalyticsTracker />
           {/* Removed the old nav bar */}
           <Routes>
             <Route path="/" element={<Home />} />
@@ -383,6 +414,9 @@ function App() {
             {/* Add a catch-all route or redirect for unknown paths */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
+
+          {/* Analytics Test Component (Development Only) */}
+          <AnalyticsTest />
         </Router>
       </AuthProvider>
     );

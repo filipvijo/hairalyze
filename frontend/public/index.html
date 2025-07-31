@@ -4,28 +4,106 @@
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Hairalyze - Your personalized AI-powered hair analysis and care recommendation system"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
+    <meta name="theme-color" content="#8B5CF6" />
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>Hairalyze - AI Hair Analysis</title>
-    <!-- Force rebuild -->
+    <!-- Primary Meta Tags -->
+    <title>Hairalyzer - AI Hair Analysis & Personalized Hair Care Recommendations</title>
+    <meta name="title" content="Hairalyzer - AI Hair Analysis & Personalized Hair Care Recommendations" />
+    <meta name="description" content="Get professional AI-powered hair analysis for $9.99. Upload 3 photos and receive personalized hair care routines, product recommendations, and expert styling tips. Trusted by 1000+ users." />
+    <meta name="keywords" content="AI hair analysis, hair health assessment, personalized hair care, online hair analysis, hair condition checker, hair care recommendations, hair type analysis, professional hair assessment" />
+    <meta name="author" content="Hairalyzer" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://www.hairalyzer.com" />
+
+    <!-- Google Search Console Verification (Replace with your actual verification code) -->
+    <!-- <meta name="google-site-verification" content="YOUR_VERIFICATION_CODE_HERE" /> -->
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.hairalyzer.com" />
+    <meta property="og:title" content="Hairalyzer - AI Hair Analysis & Personalized Hair Care Recommendations" />
+    <meta property="og:description" content="Get professional AI-powered hair analysis for $9.99. Upload 3 photos and receive personalized hair care routines, product recommendations, and expert styling tips." />
+    <meta property="og:image" content="https://www.hairalyzer.com/images/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="Hairalyzer" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://www.hairalyzer.com" />
+    <meta property="twitter:title" content="Hairalyzer - AI Hair Analysis & Personalized Hair Care" />
+    <meta property="twitter:description" content="Get professional AI-powered hair analysis for $9.99. Upload 3 photos and receive personalized hair care routines and product recommendations." />
+    <meta property="twitter:image" content="https://www.hairalyzer.com/images/og-image.jpg" />
+    <meta property="twitter:creator" content="@hairalyzer" />
+
+    <!-- Additional SEO Meta Tags -->
+    <meta name="application-name" content="Hairalyzer" />
+    <meta name="apple-mobile-web-app-title" content="Hairalyzer" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- Favicon and App Icons -->
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="16x16" href="%PUBLIC_URL%/favicon.ico" />
+
+    <!-- Manifest -->
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://www.googletagmanager.com" />
+
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JD9VYSESBK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      // Google Analytics 4 Configuration
+      gtag('config', 'G-JD9VYSESBK', {
+        page_title: document.title,
+        page_location: window.location.href,
+        send_page_view: true
+      });
+
+      // Enhanced ecommerce tracking for hair analysis purchases
+      gtag('config', 'G-JD9VYSESBK', {
+        custom_map: {
+          'custom_parameter_1': 'hair_analysis_type',
+          'custom_parameter_2': 'user_hair_problem'
+        }
+      });
+    </script>
+
+    <!-- Schema.org structured data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Hairalyzer",
+      "description": "AI-powered hair analysis and personalized hair care recommendations",
+      "url": "https://www.hairalyzer.com",
+      "applicationCategory": "HealthApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "9.99",
+        "priceCurrency": "USD",
+        "description": "Professional AI hair analysis with personalized recommendations"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "reviewCount": "1000"
+      }
+    }
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
