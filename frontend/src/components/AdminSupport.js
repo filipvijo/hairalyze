@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import './AdminSupport.css';
 
+// Force rebuild - Admin Support Page
+
 const AdminSupport = () => {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
