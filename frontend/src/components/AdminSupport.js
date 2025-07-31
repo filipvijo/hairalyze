@@ -17,24 +17,25 @@ const AdminSupport = () => {
     try {
       console.log('👨‍💼 Loading all support tickets...');
 
-      // Load tickets directly from Supabase (bypassing RLS for admin)
-      const { data: tickets, error } = await supabase
-        .from('support_tickets')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('❌ Error loading tickets:', error);
-        // If RLS blocks us, we'll show a message
-        if (error.code === 'PGRST116') {
-          alert('Admin access required. Please contact the developer to set up admin access.');
+      // Use backend API with admin key
+      const response = await fetch('/api/admin/support-tickets', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-key': 'hairalyzer_admin_2025_secure_key'
         }
-      } else {
-        console.log(`✅ Loaded ${tickets.length} support tickets`);
-        setTickets(tickets);
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+
+      const data = await response.json();
+      console.log(`✅ Loaded ${data.tickets.length} support tickets`);
+      setTickets(data.tickets);
     } catch (error) {
-      console.error('Error loading tickets:', error);
+      console.error('❌ Error loading tickets:', error);
+      alert('Failed to load support tickets. Please check your admin access.');
     } finally {
       setLoading(false);
     }
@@ -44,28 +45,27 @@ const AdminSupport = () => {
     try {
       console.log(`👨‍💼 Updating ticket ${ticketId} status to: ${status}`);
 
-      const { data, error } = await supabase
-        .from('support_tickets')
-        .update({
-          status,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', ticketId)
-        .select()
-        .single();
+      const response = await fetch(`/api/admin/support-tickets/${ticketId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-key': 'hairalyzer_admin_2025_secure_key'
+        },
+        body: JSON.stringify({ status })
+      });
 
-      if (error) {
-        console.error('❌ Error updating ticket status:', error);
-        alert('Failed to update ticket status. You may need admin permissions.');
-      } else {
-        console.log(`✅ Ticket ${ticketId} status updated to: ${status}`);
-        loadTickets();
-        if (selectedTicket?.id === ticketId) {
-          setSelectedTicket({...selectedTicket, status});
-        }
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      console.log(`✅ Ticket ${ticketId} status updated to: ${status}`);
+      loadTickets();
+      if (selectedTicket?.id === ticketId) {
+        setSelectedTicket({...selectedTicket, status});
       }
     } catch (error) {
-      console.error('Error updating ticket status:', error);
+      console.error('❌ Error updating ticket status:', error);
+      alert('Failed to update ticket status. You may need admin permissions.');
     }
   };
 
@@ -73,29 +73,26 @@ const AdminSupport = () => {
     try {
       console.log(`👨‍💼 Responding to ticket ${ticketId}`);
 
-      const { data, error } = await supabase
-        .from('support_tickets')
-        .update({
-          admin_response: response,
-          admin_responded_at: new Date().toISOString(),
-          status: 'resolved',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', ticketId)
-        .select()
-        .single();
+      const apiResponse = await fetch(`/api/admin/support-tickets/${ticketId}/respond`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-key': 'hairalyzer_admin_2025_secure_key'
+        },
+        body: JSON.stringify({ response })
+      });
 
-      if (error) {
-        console.error('❌ Error responding to ticket:', error);
-        alert('Failed to send response. You may need admin permissions.');
-      } else {
-        console.log(`✅ Response sent to ticket ${ticketId}`);
-        setResponse('');
-        loadTickets();
-        alert('Response sent successfully!');
+      if (!apiResponse.ok) {
+        throw new Error(`HTTP error! status: ${apiResponse.status}`);
       }
+
+      console.log(`✅ Response sent to ticket ${ticketId}`);
+      setResponse('');
+      loadTickets();
+      alert('Response sent successfully!');
     } catch (error) {
-      console.error('Error sending response:', error);
+      console.error('❌ Error responding to ticket:', error);
+      alert('Failed to send response. You may need admin permissions.');
     }
   };
 
@@ -127,6 +124,17 @@ const AdminSupport = () => {
     return (
       <div className="admin-support-container">
         <div className="loading">Loading support tickets...</div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="admin-support-container">
+        <div className="admin-header">
+          <h1>Support Tickets</h1>
+          <p>Loading tickets...</p>
+        </div>
       </div>
     );
   }
