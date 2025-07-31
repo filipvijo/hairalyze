@@ -1,7 +1,7 @@
 // Google Analytics 4 Utility Functions
-// Measurement ID: G-JD9VYSESBK
+// Measurement ID: G-JKWMHECE68
 
-const GA_MEASUREMENT_ID = 'G-JD9VYSESBK';
+const GA_MEASUREMENT_ID = 'G-JKWMHECE68';
 
 // Check if gtag is available
 const isGtagAvailable = () => {
