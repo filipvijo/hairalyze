@@ -143,7 +143,7 @@ const Home = () => {
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
         <div className="absolute inset-0 bg-dark bg-opacity-70"></div>
         <img
-          src="/images/image_1.png"
+          src="/images/image_14.png"
           alt="Stylish hair background"
           className="absolute object-cover w-full h-full z-0"
         />

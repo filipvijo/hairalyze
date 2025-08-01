@@ -26,8 +26,18 @@ const HairTypesGuide = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
       {/* SEO-Optimized Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-16 hair-guide-force-white">
-        <div className="max-w-4xl mx-auto px-6 text-center hair-guide-force-white">
+      <div
+        className="text-white py-16 hair-guide-force-white relative"
+        style={{
+          backgroundImage: 'url(/images/image_11.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+        <div className="max-w-4xl mx-auto px-6 text-center hair-guide-force-white relative z-10">
           <h1 className="text-4xl md:text-5xl font-bold mb-6 hair-guide-force-white" style={{ color: '#ffffff' }}>
             Complete Hair Type Analysis Guide
           </h1>
