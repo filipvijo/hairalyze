@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import LazyImage from './LazyImage';
 
 const ImageCarousel = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -26,7 +27,7 @@ const ImageCarousel = () => {
             index === currentImageIndex ? 'opacity-100' : 'opacity-0'
           }`}
         >
-          <img
+          <LazyImage
             src={image}
             alt={`Hair inspiration ${index + 1}`}
             className="w-full h-full object-cover"

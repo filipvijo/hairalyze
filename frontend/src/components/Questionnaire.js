@@ -35,9 +35,11 @@ const Questionnaire = () => {
     const files = Array.from(e.target.files);
     const compressedFiles = [];
     const options = {
-      maxSizeMB: 1,
+      maxSizeMB: 0.8, // Reduced from 1MB for better performance
       maxWidthOrHeight: 1024,
       useWebWorker: true,
+      fileType: 'image/jpeg', // Convert to JPEG for better compression
+      quality: 0.85, // Good balance between quality and size
     };
 
     try {
