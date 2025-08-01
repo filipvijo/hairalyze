@@ -1,8 +1,6 @@
 /* Hair Types Guide - Force White Text with Maximum Specificity */
 
-/* Override any global styles with maximum specificity */
-.hair-guide-force-white,
-.hair-guide-force-white *,
+/* Override any global styles with maximum specificity, but exclude buttons and links */
 .hair-guide-force-white h1,
 .hair-guide-force-white h2,
 .hair-guide-force-white h3,
@@ -12,6 +10,12 @@
 .hair-guide-force-white p,
 .hair-guide-force-white span,
 .hair-guide-force-white div {
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+/* Specifically target only text elements, not buttons or links */
+.hair-guide-force-white:not(a):not(button) {
   color: #ffffff !important;
   text-shadow: none !important;
 }
@@ -42,8 +46,24 @@ div.hair-guide-force-white h2.hair-guide-force-white {
   color: #ffffff !important;
 }
 
-/* Override any potential body text color inheritance */
-body .hair-guide-force-white,
-body .hair-guide-force-white * {
+/* Override any potential body text color inheritance, but preserve button colors */
+body .hair-guide-force-white h1,
+body .hair-guide-force-white h2,
+body .hair-guide-force-white h3,
+body .hair-guide-force-white h4,
+body .hair-guide-force-white h5,
+body .hair-guide-force-white h6,
+body .hair-guide-force-white p:not(.button-text),
+body .hair-guide-force-white span:not(.button-text),
+body .hair-guide-force-white div:not(.button-container) {
   color: #ffffff !important;
+}
+
+/* Ensure buttons maintain their intended colors */
+.hair-guide-force-white a.bg-white {
+  color: #7C3AED !important; /* Purple text on white background */
+}
+
+.hair-guide-force-white a.border-white {
+  color: #ffffff !important; /* White text on transparent background with white border */
 }

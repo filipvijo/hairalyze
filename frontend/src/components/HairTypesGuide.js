@@ -399,14 +399,18 @@ the human eye might miss, providing more accurate results than self-assessment.<
             <Link
               to="/signup"
               onClick={() => handleCTAClick('final_get_analysis')}
-              className="inline-block bg-white text-purple-600 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 mr-4"
+              className="inline-block bg-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 mr-4"
+              style={{ color: '#7C3AED' }}
             >
               Get Your Hair Analysis - $9.99
             </Link>
             <Link
               to="/what-you-get"
               onClick={() => handleCTAClick('what_you_get')}
-              className="inline-block border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-purple-600 transition-all duration-300"
+              className="inline-block border-2 border-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white transition-all duration-300"
+              style={{ color: '#ffffff' }}
+              onMouseEnter={(e) => e.target.style.color = '#7C3AED'}
+              onMouseLeave={(e) => e.target.style.color = '#ffffff'}
             >
               See What You Get
             </Link>

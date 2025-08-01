@@ -145,6 +145,12 @@ const Home = () => {
         {currentUser ? (
           <>
             <span className="text-white font-medium">Hello, {currentUser.email.split('@')[0]}</span>
+            <Link
+              to="/hair-types-guide"
+              className="px-4 py-2 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white font-medium hover:bg-opacity-30 transition-all duration-300 border border-white border-opacity-30"
+            >
+              Hair Guide
+            </Link>
             <button
               onClick={handleViewResults}
               className="px-4 py-2 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white font-medium hover:bg-opacity-30 transition-all duration-300 border border-white border-opacity-30 cursor-pointer relative z-50"
@@ -213,6 +219,13 @@ const Home = () => {
                 >
                   📊 View Results
                 </button>
+                <Link
+                  to="/hair-types-guide"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block w-full px-4 py-3 text-left text-gray-800 hover:bg-gray-100 transition-colors duration-200 border-b border-gray-200"
+                >
+                  📚 Hair Guide
+                </Link>
                 <button
                   onClick={() => {
                     navigate('/account');
