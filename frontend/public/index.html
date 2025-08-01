@@ -49,15 +49,48 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://api.stripe.com">
     <link rel="dns-prefetch" href="https://js.stripe.com">
+    <link rel="dns-prefetch" href="https://issquvzvnxwoieibzmtw.supabase.co">
+    <link rel="preload" href="/images/image_14.webp" as="image" type="image/webp">
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"></noscript>
 
     <!-- Critical CSS Inlining -->
     <style>
       /* Critical above-the-fold styles */
-      body { margin: 0; font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif; }
-      .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #6366F1; border-radius: 50%; animation: spin 1s linear infinite; }
+      body {
+        margin: 0;
+        font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
+      #root { min-height: 100vh; }
+      .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #6366F1;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
       @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+      /* Critical layout styles */
+      .min-h-screen { min-height: 100vh; }
+      .flex { display: flex; }
+      .items-center { align-items: center; }
+      .justify-center { justify-content: center; }
+      .text-center { text-align: center; }
+      .text-white { color: white; }
+      .font-medium { font-weight: 500; }
+      .animate-spin { animation: spin 1s linear infinite; }
+      .rounded-full { border-radius: 9999px; }
+      .h-12 { height: 3rem; }
+      .w-12 { width: 3rem; }
+      .border-b-2 { border-bottom-width: 2px; }
+      .border-white { border-color: white; }
+      .mx-auto { margin-left: auto; margin-right: auto; }
+      .mb-4 { margin-bottom: 1rem; }
     </style>
 
     <!-- Favicon and App Icons -->

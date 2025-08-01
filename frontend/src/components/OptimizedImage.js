@@ -13,20 +13,35 @@ const OptimizedImage = ({
   const [hasError, setHasError] = useState(false);
   const imgRef = useRef();
 
-  // Generate WebP and fallback sources
+  // Generate WebP and responsive sources
   const getImageSources = (originalSrc) => {
-    if (!originalSrc) return { webp: '', fallback: originalSrc };
-    
+    if (!originalSrc) return { webp: '', fallback: originalSrc, srcSet: '' };
+
     const extension = originalSrc.split('.').pop().toLowerCase();
     const basePath = originalSrc.replace(`.${extension}`, '');
-    
+
+    // Generate responsive image sources
+    const webpSrcSet = [
+      `${basePath}-small.webp 400w`,
+      `${basePath}-medium.webp 800w`,
+      `${basePath}.webp 1200w`
+    ].join(', ');
+
+    const fallbackSrcSet = [
+      `${basePath}-small${extension} 400w`,
+      `${basePath}-medium${extension} 800w`,
+      `${basePath}${extension} 1200w`
+    ].join(', ');
+
     return {
       webp: `${basePath}.webp`,
-      fallback: originalSrc
+      fallback: originalSrc,
+      webpSrcSet,
+      fallbackSrcSet
     };
   };
 
-  const { webp, fallback } = getImageSources(src);
+  const { webp, fallback, webpSrcSet, fallbackSrcSet } = getImageSources(src);
 
   useEffect(() => {
     if (priority) return; // Skip intersection observer for priority images
@@ -74,10 +89,18 @@ const OptimizedImage = ({
         />
       )}
       
-      {/* Optimized image with WebP support */}
+      {/* Optimized image with WebP support and responsive sizes */}
       {isInView && (
         <picture>
-          <source srcSet={webp} type="image/webp" />
+          <source
+            srcSet={webpSrcSet || webp}
+            type="image/webp"
+            sizes={sizes}
+          />
+          <source
+            srcSet={fallbackSrcSet || fallback}
+            sizes={sizes}
+          />
           <img
             src={hasError ? fallback : (webp || fallback)}
             alt={alt}
@@ -88,6 +111,8 @@ const OptimizedImage = ({
             }`}
             loading={priority ? 'eager' : 'lazy'}
             sizes={sizes}
+            width="auto"
+            height="auto"
           />
         </picture>
       )}

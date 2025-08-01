@@ -1,21 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 // Add useNavigate to the import
 import { BrowserRouter as Router, Route, Routes, Link, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext'; // Import AuthProvider and useAuth
-import Questionnaire from './components/Questionnaire';
-import Submissions from './components/Submissions';
-import Signup from './components/Signup'; // Import Signup
-import Login from './components/Login'; // Import Login
-import Account from './components/Account'; // Import Account
-import PaymentModal from './components/PaymentModal'; // Import PaymentModal
-import WhatYouGet from './components/WhatYouGet'; // Import WhatYouGet
-import History from './components/History'; // Import History
-import FAQ from './components/FAQ'; // Import FAQ
-import AdminSupport from './components/AdminSupport'; // Import AdminSupport
-import HairTypesGuide from './components/HairTypesGuide'; // Import Hair Types Guide
-import AnalyticsTest from './components/AnalyticsTest'; // Import Analytics Test (dev only)
 import { initializeAnalytics, trackPageView, trackCTAClick, trackNavigation, trackAnalysisStart, trackPaymentComplete } from './utils/analytics'; // Import analytics
 import './App.css';
+
+// Lazy load components for code splitting
+const Questionnaire = lazy(() => import('./components/Questionnaire'));
+const Submissions = lazy(() => import('./components/Submissions'));
+const Signup = lazy(() => import('./components/Signup'));
+const Login = lazy(() => import('./components/Login'));
+const Account = lazy(() => import('./components/Account'));
+const PaymentModal = lazy(() => import('./components/PaymentModal'));
+const WhatYouGet = lazy(() => import('./components/WhatYouGet'));
+const History = lazy(() => import('./components/History'));
+const FAQ = lazy(() => import('./components/FAQ'));
+const AdminSupport = lazy(() => import('./components/AdminSupport'));
+const HairTypesGuide = lazy(() => import('./components/HairTypesGuide'));
+const AnalyticsTest = lazy(() => import('./components/AnalyticsTest'));
+
+// Import performance monitor (not lazy loaded as it needs to run immediately)
+import PerformanceMonitor from './components/PerformanceMonitor';
+import OptimizedImage from './components/OptimizedImage';
 
 // Debug environment variables
 console.log('🔧 Environment Debug:', {
@@ -142,10 +148,12 @@ const Home = () => {
       {/* Hero image background */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
         <div className="absolute inset-0 bg-dark bg-opacity-70"></div>
-        <img
+        <OptimizedImage
           src="/images/image_14.png"
           alt="Stylish hair background"
           className="absolute object-cover w-full h-full z-0"
+          priority={true}
+          sizes="100vw"
         />
       </div>
 
@@ -391,8 +399,17 @@ function App() {
       <AuthProvider> {/* Wrap the entire app with AuthProvider */}
         <Router>
           <AnalyticsTracker />
+          <PerformanceMonitor />
           {/* Removed the old nav bar */}
-          <Routes>
+          <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary to-accent">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+                <p className="text-white font-medium">Loading...</p>
+              </div>
+            </div>
+          }>
+            <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/what-you-get" element={<WhatYouGet />} />
             <Route path="/signup" element={<Signup />} />
@@ -445,6 +462,7 @@ function App() {
             {/* Add a catch-all route or redirect for unknown paths */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
+          </Suspense>
 
           {/* Analytics Test Component (Development Only) */}
           <AnalyticsTest />
