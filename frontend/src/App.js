@@ -12,7 +12,6 @@ import WhatYouGet from './components/WhatYouGet'; // Import WhatYouGet
 import History from './components/History'; // Import History
 import FAQ from './components/FAQ'; // Import FAQ
 import AdminSupport from './components/AdminSupport'; // Import AdminSupport
-import HairTypesGuide from './components/HairTypesGuide'; // Import Hair Types Guide
 import AnalyticsTest from './components/AnalyticsTest'; // Import Analytics Test (dev only)
 import { initializeAnalytics, trackPageView, trackCTAClick, trackNavigation, trackAnalysisStart, trackPaymentComplete } from './utils/analytics'; // Import analytics
 import './App.css';
@@ -145,13 +144,6 @@ const Home = () => {
         {currentUser ? (
           <>
             <span className="text-white font-medium">Hello, {currentUser.email.split('@')[0]}</span>
-            <Link
-              to="/hair-types-guide"
-              onClick={() => trackNavigation('hair_types_guide', 'homepage')}
-              className="px-4 py-2 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white font-medium hover:bg-opacity-30 transition-all duration-300 border border-white border-opacity-30"
-            >
-              Hair Guide
-            </Link>
             <button
               onClick={handleViewResults}
               className="px-4 py-2 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white font-medium hover:bg-opacity-30 transition-all duration-300 border border-white border-opacity-30 cursor-pointer relative z-50"
@@ -174,13 +166,6 @@ const Home = () => {
           </>
         ) : (
           <>
-            <Link
-              to="/hair-types-guide"
-              onClick={() => trackNavigation('hair_types_guide', 'homepage')}
-              className="px-4 py-2 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white font-medium hover:bg-opacity-30 transition-all duration-300 border border-white border-opacity-30"
-            >
-              Hair Guide
-            </Link>
             <Link
               to="/login"
               className="px-4 py-2 rounded-full bg-white bg-opacity-20 backdrop-filter backdrop-blur-sm text-white font-medium hover:bg-opacity-30 transition-all duration-300 border border-white border-opacity-30"
@@ -221,16 +206,6 @@ const Home = () => {
                   <p className="text-sm text-gray-600">Hello,</p>
                   <p className="font-medium text-gray-800">{currentUser.email.split('@')[0]}</p>
                 </div>
-                <Link
-                  to="/hair-types-guide"
-                  onClick={() => {
-                    trackNavigation('hair_types_guide', 'homepage');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="block w-full px-4 py-3 text-left text-gray-800 hover:bg-gray-100 transition-colors duration-200 border-b border-gray-200"
-                >
-                  📚 Hair Types Guide
-                </Link>
                 <button
                   onClick={handleViewResults}
                   className="w-full px-4 py-3 text-left text-gray-800 hover:bg-gray-100 transition-colors duration-200 border-b border-gray-200"
@@ -258,16 +233,6 @@ const Home = () => {
               </>
             ) : (
               <>
-                <Link
-                  to="/hair-types-guide"
-                  onClick={() => {
-                    trackNavigation('hair_types_guide', 'homepage');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="block w-full px-4 py-3 text-left text-gray-800 hover:bg-gray-100 transition-colors duration-200 border-b border-gray-200"
-                >
-                  📚 Hair Types Guide
-                </Link>
                 <Link
                   to="/login"
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -440,10 +405,6 @@ function App() {
             <Route
               path="/faq"
               element={<FAQ />}
-            />
-            <Route
-              path="/hair-types-guide"
-              element={<HairTypesGuide />}
             />
             <Route
               path="/admin/support"
