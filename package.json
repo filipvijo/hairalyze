@@ -4,8 +4,11 @@
   "description": "Hairalyze - Hair Analysis Application",
   "main": "index.js",
   "scripts": {
-    "start": "cd backend && npm start",
-    "build": "cd backend && npm install"
+    "start": "cd frontend && npm start",
+    "build": "cd frontend && npm run build",
+    "install": "cd frontend && npm install",
+    "backend:start": "cd backend && npm start",
+    "backend:build": "cd backend && npm install"
   },
   "repository": {
     "type": "git",
@@ -21,5 +24,8 @@
   "bugs": {
     "url": "https://github.com/filipvijo/hairalyze/issues"
   },
-  "homepage": "https://github.com/filipvijo/hairalyze#readme"
+  "homepage": "https://github.com/filipvijo/hairalyze#readme",
+  "workspaces": [
+    "frontend"
+  ]
 }
