@@ -12,6 +12,7 @@ import WhatYouGet from './components/WhatYouGet'; // Import WhatYouGet
 import History from './components/History'; // Import History
 import FAQ from './components/FAQ'; // Import FAQ
 import AdminSupport from './components/AdminSupport'; // Import AdminSupport
+import HairTypesGuide from './components/HairTypesGuide'; // Import Hair Types Guide
 import AnalyticsTest from './components/AnalyticsTest'; // Import Analytics Test (dev only)
 import { initializeAnalytics, trackPageView, trackCTAClick, trackNavigation, trackAnalysisStart, trackPaymentComplete } from './utils/analytics'; // Import analytics
 import './App.css';
@@ -405,6 +406,10 @@ function App() {
             <Route
               path="/faq"
               element={<FAQ />}
+            />
+            <Route
+              path="/hair-types-guide"
+              element={<HairTypesGuide />}
             />
             <Route
               path="/admin/support"

@@ -43,6 +43,14 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- Hair Types Guide - Educational Content for SEO -->
+  <url>
+    <loc>https://www.hairalyzer.com/hair-types-guide</loc>
+    <lastmod>2025-08-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
   <!-- Protected Pages (Lower Priority - Require Authentication) -->
   <url>
     <loc>https://www.hairalyzer.com/questionnaire</loc>

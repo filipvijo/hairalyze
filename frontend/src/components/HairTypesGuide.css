@@ -1,0 +1,49 @@
+/* Hair Types Guide - Force White Text with Maximum Specificity */
+
+/* Override any global styles with maximum specificity */
+.hair-guide-force-white,
+.hair-guide-force-white *,
+.hair-guide-force-white h1,
+.hair-guide-force-white h2,
+.hair-guide-force-white h3,
+.hair-guide-force-white h4,
+.hair-guide-force-white h5,
+.hair-guide-force-white h6,
+.hair-guide-force-white p,
+.hair-guide-force-white span,
+.hair-guide-force-white div {
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+/* Specific targeting for different elements */
+div.hair-guide-force-white h1.hair-guide-force-white {
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+div.hair-guide-force-white p.hair-guide-force-white {
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+div.hair-guide-force-white h2.hair-guide-force-white {
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+/* Override Tailwind's text-gray classes */
+.hair-guide-force-white.text-gray-800,
+.hair-guide-force-white .text-gray-800,
+.hair-guide-force-white.text-gray-700,
+.hair-guide-force-white .text-gray-700,
+.hair-guide-force-white.text-gray-600,
+.hair-guide-force-white .text-gray-600 {
+  color: #ffffff !important;
+}
+
+/* Override any potential body text color inheritance */
+body .hair-guide-force-white,
+body .hair-guide-force-white * {
+  color: #ffffff !important;
+}

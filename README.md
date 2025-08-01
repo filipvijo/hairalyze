@@ -2,7 +2,7 @@
 
 **Hairalyze** is an AI-powered web app that analyzes hair health and recommends personalized care routines based on user input and images. Designed with elegance and ease-of-use in mind, it empowers users to better understand their hair — and how to treat it right.
 
-🔗 Live Demo: [hairalyze.vercel.app](https://hairalyze.vercel.app)
+🔗 Live Demo: [www.hairalyzer.com](https://www.hairalyzer.com)
 
 ![hairalyzer](https://github.com/user-attachments/assets/15fecddf-e9f2-49f0-aff0-d03ad0a4d9f5)
 
