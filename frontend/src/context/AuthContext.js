@@ -143,12 +143,19 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
+  // Helper function to check if user has unlimited access
+  const hasUnlimitedAccess = () => {
+    if (!currentUser?.user_metadata) return false;
+    return currentUser.user_metadata.unlimited_access === true;
+  };
+
   const value = {
     currentUser,
     signup,
     login,
     logout,
     updatePassword,
+    hasUnlimitedAccess,
   };
 
   return (

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import SupportModal from './SupportModal';
 
 const Account = () => {
-  const { currentUser, logout, updatePassword } = useAuth();
+  const { currentUser, logout, updatePassword, hasUnlimitedAccess } = useAuth();
   const navigate = useNavigate();
   
   // State for user stats
@@ -286,6 +286,21 @@ const Account = () => {
               </div>
             </div>
 
+            {/* Account Status */}
+            {hasUnlimitedAccess() && (
+              <div className="mb-8">
+                <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg p-6 text-center">
+                  <div className="flex items-center justify-center mb-2">
+                    <span className="text-3xl mr-2">✨</span>
+                    <h2 className="text-2xl font-bold">Premium Access</h2>
+                    <span className="text-3xl ml-2">✨</span>
+                  </div>
+                  <p className="text-lg">You have unlimited free access to hair analysis!</p>
+                  <p className="text-sm opacity-90 mt-1">No payment required for new analyses</p>
+                </div>
+              </div>
+            )}
+
             {/* Quick Actions */}
             <div className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-800 mb-4">Quick Actions</h2>
@@ -294,7 +309,11 @@ const Account = () => {
                   onClick={() => navigate('/questionnaire')}
                   className="bg-gradient-to-r from-primary to-accent text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105"
                 >
-                  🔬 Start New Hair Analysis ($9.99)
+                  {hasUnlimitedAccess() ? (
+                    <>🔬 Start New Hair Analysis (FREE ✨)</>
+                  ) : (
+                    <>🔬 Start New Hair Analysis ($9.99)</>
+                  )}
                 </button>
                 <button
                   onClick={() => navigate('/submissions')}

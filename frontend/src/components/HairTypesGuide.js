@@ -5,6 +5,15 @@ import './HairTypesGuide.css';
 
 const HairTypesGuide = () => {
   useEffect(() => {
+    // SEO: Update page title and meta description
+    document.title = 'Complete Hair Type Analysis Guide - Straight, Wavy, Curly, Coily | Hairalyzer';
+
+    // Update meta description
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute('content', 'Complete guide to hair types, texture analysis, and porosity. Learn about straight, wavy, curly, and coily hair with personalized care recommendations. Free hair type guide.');
+    }
+
     // Track page view for SEO analytics
     trackPageView('Hair Types Guide - Complete Hair Type Analysis Guide', window.location.href);
     trackUserEngagement('page_view', 'hair_types_guide');

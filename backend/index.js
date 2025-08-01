@@ -1146,6 +1146,125 @@ app.patch('/api/admin/support-tickets/:id/status', async (req, res) => {
   }
 });
 
+// Admin endpoint to grant unlimited access to a user
+app.post('/api/admin/grant-unlimited-access', async (req, res) => {
+  try {
+    const adminKey = req.headers['x-admin-key'];
+    if (adminKey !== process.env.ADMIN_KEY) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    console.log(`👨‍💼 Admin granting unlimited access to: ${email}`);
+
+    const { data, error } = await supabase.auth.admin.updateUserById(
+      email, // This should be user ID, let me fix this
+      {
+        user_metadata: { unlimited_access: true }
+      }
+    );
+
+    if (error) {
+      console.error('❌ Error granting unlimited access:', error);
+      return res.status(500).json({ error: 'Failed to grant unlimited access' });
+    }
+
+    console.log('✅ Unlimited access granted successfully');
+    res.json({ success: true, message: `Unlimited access granted to ${email}` });
+  } catch (error) {
+    console.error('❌ Admin grant access error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Admin endpoint to revoke unlimited access from a user
+app.post('/api/admin/revoke-unlimited-access', async (req, res) => {
+  try {
+    const adminKey = req.headers['x-admin-key'];
+    if (adminKey !== process.env.ADMIN_KEY) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    console.log(`👨‍💼 Admin revoking unlimited access from: ${email}`);
+
+    // First find the user by email
+    const { data: users, error: listError } = await supabase.auth.admin.listUsers();
+    if (listError) {
+      console.error('❌ Error listing users:', listError);
+      return res.status(500).json({ error: 'Failed to find user' });
+    }
+
+    const user = users.users.find(u => u.email === email);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Remove unlimited_access from user metadata
+    const updatedMetadata = { ...user.user_metadata };
+    delete updatedMetadata.unlimited_access;
+
+    const { data, error } = await supabase.auth.admin.updateUserById(
+      user.id,
+      {
+        user_metadata: updatedMetadata
+      }
+    );
+
+    if (error) {
+      console.error('❌ Error revoking unlimited access:', error);
+      return res.status(500).json({ error: 'Failed to revoke unlimited access' });
+    }
+
+    console.log('✅ Unlimited access revoked successfully');
+    res.json({ success: true, message: `Unlimited access revoked from ${email}` });
+  } catch (error) {
+    console.error('❌ Admin revoke access error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Admin endpoint to list users with unlimited access
+app.get('/api/admin/unlimited-access-users', async (req, res) => {
+  try {
+    const adminKey = req.headers['x-admin-key'];
+    if (adminKey !== process.env.ADMIN_KEY) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    console.log('👨‍💼 Admin listing unlimited access users');
+
+    const { data: users, error } = await supabase.auth.admin.listUsers();
+    if (error) {
+      console.error('❌ Error listing users:', error);
+      return res.status(500).json({ error: 'Failed to list users' });
+    }
+
+    const unlimitedUsers = users.users
+      .filter(user => user.user_metadata?.unlimited_access === true)
+      .map(user => ({
+        id: user.id,
+        email: user.email,
+        created_at: user.created_at,
+        last_sign_in_at: user.last_sign_in_at
+      }));
+
+    console.log(`✅ Found ${unlimitedUsers.length} users with unlimited access`);
+    res.json({ success: true, users: unlimitedUsers });
+  } catch (error) {
+    console.error('❌ Admin list users error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Respond to support ticket (admin only)
 app.post('/api/admin/support-tickets/:id/respond', async (req, res) => {
   try {

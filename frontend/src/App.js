@@ -52,7 +52,7 @@ const AnalyticsTracker = () => {
 
 // Updated Home component with auth state and logout
 const Home = () => {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, hasUnlimitedAccess } = useAuth();
   const navigate = useNavigate(); // Use navigate for logout redirect
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = React.useState(false);
@@ -95,7 +95,16 @@ const Home = () => {
   const handleStartAnalysis = () => {
     trackCTAClick('start_hair_analysis', 'homepage');
     trackAnalysisStart();
-    setIsPaymentModalOpen(true);
+
+    // Check if user has unlimited access
+    if (hasUnlimitedAccess()) {
+      console.log('🎉 User has unlimited access, bypassing payment');
+      // Skip payment and go directly to questionnaire
+      navigate('/questionnaire');
+    } else {
+      console.log('💳 User needs to pay, showing payment modal');
+      setIsPaymentModalOpen(true);
+    }
   };
 
   const handlePaymentSuccess = (paymentIntent) => {
@@ -279,7 +288,11 @@ const Home = () => {
               className="px-8 py-4 rounded-full bg-gradient-to-r from-accent to-primary text-white font-semibold text-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105"
             >
               <span className="mr-2">Start Hair Analysis</span>
-              <span className="text-2xl font-bold">$9.99</span>
+              {hasUnlimitedAccess() ? (
+                <span className="text-2xl font-bold">FREE ✨</span>
+              ) : (
+                <span className="text-2xl font-bold">$9.99</span>
+              )}
             </button>
 
             {/* What You Get button */}
