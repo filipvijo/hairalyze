@@ -19,7 +19,7 @@ const History = () => {
         return;
       }
 
-      const apiUrl = 'http://localhost:5000';
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
       const response = await fetch(`${apiUrl}/api/chat/history`, {
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
